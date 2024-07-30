@@ -1,8 +1,8 @@
 namespace Bouchonnois.Service
 {
-    public class Terrain
+    public class Terrain(string nom)
     {
-        public string Nom { get; init; }
+        public string Nom { get; init; } = nom;
         public int NbGalinettes { get; set; }
     }
 }

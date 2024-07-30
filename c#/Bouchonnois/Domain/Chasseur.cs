@@ -1,8 +1,8 @@
 namespace Bouchonnois.Domain
 {
-    public class Chasseur
+    public class Chasseur(string nom)
     {
-        public string Nom { get; set; }
+        public string Nom { get; set; } = nom;
         public int BallesRestantes { get; set; }
         public int NbGalinettes { get; set; }
     }
