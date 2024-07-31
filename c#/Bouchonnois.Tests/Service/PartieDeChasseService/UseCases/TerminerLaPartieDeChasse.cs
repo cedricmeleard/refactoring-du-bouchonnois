@@ -23,7 +23,6 @@ public class TerminerLaPartieDeChasse
 
         repository.Add(partieDeChasse);
 
-
         var service = new Bouchonnois.Service.PartieDeChasseService(repository, () => DateTime.Now);
         string meilleurChasseur = service.TerminerLaPartie(id);
 
@@ -74,6 +73,8 @@ public class TerminerLaPartieDeChasse
         savedPartieDeChasse.Chasseurs[0].NbGalinettes.Should().Be(2);
 
         meilleurChasseur.Should().Be("Robert");
+        partieDeChasse.Events.First().Message.Should()
+            .Be("La partie de chasse est terminée, vainqueur : Robert - 2 galinettes");
     }
 
     [Fact]
@@ -113,6 +114,8 @@ public class TerminerLaPartieDeChasse
         savedPartieDeChasse.Chasseurs[2].NbGalinettes.Should().Be(0);
 
         meilleurChasseur.Should().Be("Dédé, Bernard");
+        partieDeChasse.Events.First().Message.Should()
+            .Be("La partie de chasse est terminée, vainqueur : Dédé - 2 galinettes, Bernard - 2 galinettes");
     }
 
     [Fact]
@@ -152,6 +155,8 @@ public class TerminerLaPartieDeChasse
         savedPartieDeChasse.Chasseurs[2].NbGalinettes.Should().Be(0);
 
         meilleurChasseur.Should().Be("Brocouille");
+        partieDeChasse.Events.First().Message.Should()
+            .Be("La partie de chasse est terminée, vainqueur : Brocouille");
     }
 
     [Fact]

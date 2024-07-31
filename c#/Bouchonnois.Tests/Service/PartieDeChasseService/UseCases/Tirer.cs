@@ -78,6 +78,10 @@ public class Tirer
 
         tirerSansBalle.Should()
             .Throw<TasPlusDeBallesMonVieuxChasseALaMain>();
+
+        partieDeChasse.Events
+            .First().Message
+            .Should().Be("Bernard tire -> T'as plus de balles mon vieux, chasse à la main");
     }
 
     [Fact]
@@ -104,8 +108,11 @@ public class Tirer
         repository.SavedPartieDeChasse().Should().BeNull();
     }
 
-    [Fact]
-    public void EchoueSiLesChasseursSontEnApero()
+    [Theory]
+    [InlineData("Bernard")]
+    [InlineData("Michel")]
+    [InlineData("Chasseur inconnu")]
+    public void EchoueSiLesChasseursSontEnApero(string name)
     {
         var id = Guid.NewGuid();
         var repository = new PartieDeChasseRepositoryForTests();
@@ -122,14 +129,20 @@ public class Tirer
         repository.Add(partieDeChasse);
 
         var service = new Bouchonnois.Service.PartieDeChasseService(repository, () => DateTime.Now);
-        var tirerEnPleinApéro = () => service.Tirer(id, "Chasseur inconnu");
+        var tirerEnPleinApéro = () => service.Tirer(id, name);
 
         tirerEnPleinApéro.Should()
             .Throw<OnTirePasPendantLapéroCestSacré>();
+        partieDeChasse.Events
+            .First().Message
+            .Should().Be($"{name} veut tirer -> On tire pas pendant l'apéro, c'est sacré !!!");
     }
 
-    [Fact]
-    public void EchoueSiLaPartieDeChasseEstTerminée()
+    [Theory]
+    [InlineData("Bernard")]
+    [InlineData("Michel")]
+    [InlineData("Chasseur inconnu")]
+    public void EchoueSiLaPartieDeChasseEstTerminée(string name)
     {
         var id = Guid.NewGuid();
         var repository = new PartieDeChasseRepositoryForTests();
@@ -146,9 +159,12 @@ public class Tirer
         repository.Add(partieDeChasse);
 
         var service = new Bouchonnois.Service.PartieDeChasseService(repository, () => DateTime.Now);
-        var tirerQuandTerminée = () => service.Tirer(id, "Chasseur inconnu");
+        var tirerQuandTerminée = () => service.Tirer(id, name);
 
         tirerQuandTerminée.Should()
             .Throw<OnTirePasQuandLaPartieEstTerminée>();
+        partieDeChasse.Events
+            .First().Message
+            .Should().Be($"{name} veut tirer -> On tire pas quand la partie est terminée");
     }
 }

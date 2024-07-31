@@ -201,7 +201,7 @@ public class PartieDeChasseService
 
         partieDeChasse.Status = PartieStatus.Terminée;
 
-        string result = "";
+        string result;
 
         if (classement.All(group => group.Key == 0)) {
             result = "Brocouille";
@@ -216,7 +216,6 @@ public class PartieDeChasseService
                 )
             );
         }
-
 
         _repository.Save(partieDeChasse);
 

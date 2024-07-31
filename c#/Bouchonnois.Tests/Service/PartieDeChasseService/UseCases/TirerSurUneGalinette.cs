@@ -78,6 +78,10 @@ public class TirerSurUneGalinette
 
         tirerSansBalle.Should()
             .Throw<TasPlusDeBallesMonVieuxChasseALaMain>();
+
+        partieDeChasse.Events
+            .First().Message
+            .Should().Be("Bernard veut tirer sur une galinette -> T'as plus de balles mon vieux, chasse à la main");
     }
 
     [Fact]
@@ -121,10 +125,11 @@ public class TirerSurUneGalinette
         repository.Add(partieDeChasse);
 
         var service = new Bouchonnois.Service.PartieDeChasseService(repository, () => DateTime.Now);
-        var chasseurInconnuVeutTirer = () => service.TirerSurUneGalinette(id, "Chasseur inconnu");
+        var chasseurInconnuVeutTirer = () => service.TirerSurUneGalinette(id, "Michel");
 
         chasseurInconnuVeutTirer.Should()
-            .Throw<ChasseurInconnu>();
+            .Throw<ChasseurInconnu>()
+            .WithMessage("Chasseur inconnu Michel");
         repository.SavedPartieDeChasse().Should().BeNull();
     }
 
@@ -150,6 +155,10 @@ public class TirerSurUneGalinette
 
         tirerEnPleinApéro.Should()
             .Throw<OnTirePasPendantLapéroCestSacré>();
+
+        partieDeChasse.Events
+            .First().Message
+            .Should().Be("Chasseur inconnu veut tirer -> On tire pas pendant l'apéro, c'est sacré !!!");
     }
 
     [Fact]
@@ -174,5 +183,9 @@ public class TirerSurUneGalinette
 
         tirerQuandTerminée.Should()
             .Throw<OnTirePasQuandLaPartieEstTerminée>();
+
+        partieDeChasse.Events
+            .First().Message
+            .Should().Be("Chasseur inconnu veut tirer -> On tire pas quand la partie est terminée");
     }
 }
