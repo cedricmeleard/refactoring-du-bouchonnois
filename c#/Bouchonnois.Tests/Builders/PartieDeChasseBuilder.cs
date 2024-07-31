@@ -1,7 +1,6 @@
 using Bouchonnois.Domain;
-using Bouchonnois.Service;
 
-namespace Bouchonnois.Tests.Service;
+namespace Bouchonnois.Tests.Builders;
 
 public class PartieDeChasseBuilder
 {

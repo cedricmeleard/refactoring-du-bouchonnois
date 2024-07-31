@@ -11,7 +11,7 @@ public class ScenarioTests
     {
         var time = new DateTime(2024, 4, 25, 9, 0, 0);
         var repository = new PartieDeChasseRepositoryForTests();
-        var service = new PartieDeChasseService(repository, () => time);
+        var service = new Bouchonnois.Service.PartieDeChasseService(repository, () => time);
         var chasseurs = new List<(string, int)>
         {
             ("Dédé", 20),

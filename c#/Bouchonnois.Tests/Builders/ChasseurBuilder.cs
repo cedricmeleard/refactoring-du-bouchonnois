@@ -1,6 +1,6 @@
 using Bouchonnois.Domain;
 
-namespace Bouchonnois.Tests.Service;
+namespace Bouchonnois.Tests.Builders;
 
 public class ChasseurBuilder
 {
