@@ -2,7 +2,7 @@ using Bouchonnois.Service;
 using Bouchonnois.Service.Exceptions;
 using Bouchonnois.Tests.Doubles;
 
-namespace Bouchonnois.Tests.Service;
+namespace Bouchonnois.Tests.Acceptance;
 
 public class ScenarioTests
 {
@@ -11,7 +11,7 @@ public class ScenarioTests
     {
         var time = new DateTime(2024, 4, 25, 9, 0, 0);
         var repository = new PartieDeChasseRepositoryForTests();
-        var service = new Bouchonnois.Service.PartieDeChasseService(repository, () => time);
+        var service = new PartieDeChasseService(repository, () => time);
         var chasseurs = new List<(string, int)>
         {
             ("Dédé", 20),
@@ -74,12 +74,10 @@ public class ScenarioTests
 
         time = time.Add(TimeSpan.FromSeconds(1));
 
-        try
-        {
+        try {
             service.Tirer(id, "Bernard");
         }
-        catch (TasPlusDeBallesMonVieuxChasseALaMain e)
-        {
+        catch (TasPlusDeBallesMonVieuxChasseALaMain) {
         }
 
         time = time.Add(TimeSpan.FromMinutes(19));

@@ -1,4 +1,4 @@
-namespace Bouchonnois.Tests.Service.PartieDeChasseService;
+namespace Bouchonnois.Tests;
 
 public class TestConstants
 {

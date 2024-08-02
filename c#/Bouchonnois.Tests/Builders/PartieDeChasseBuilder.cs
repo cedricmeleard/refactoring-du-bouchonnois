@@ -4,63 +4,49 @@ namespace Bouchonnois.Tests.Builders;
 
 public class PartieDeChasseBuilder
 {
-    private readonly List<Chasseur> _chasseurs;
+    private readonly List<ChasseurBuilder> _chasseurs;
     private readonly List<Event> _events;
 
     private Guid _id;
     private PartieStatus _status = PartieStatus.EnCours;
-    private Terrain _terrain;
+    private Terrain? _terrain;
     public PartieDeChasseBuilder()
     {
+        _id = Guid.NewGuid();
         _events = new List<Event>();
-        _chasseurs = new List<Chasseur>();
+        _chasseurs = new List<ChasseurBuilder>();
     }
-    public PartieDeChasseBuilder WithId(Guid id)
+
+    public PartieDeChasseBuilder AvecUnTerrainRicheEnGalinettes(int nbGalinettes)
     {
-        _id = id;
-        return this;
-    }
-    public PartieDeChasseBuilder WithTerrain(string name, int nbGalinettes)
-    {
-        _terrain = new Terrain(name) { NbGalinettes = nbGalinettes };
-        return this;
-    }
-    public PartieDeChasseBuilder WithChasseur(string name, int nbBallesRestantes)
-    {
-        var chasseur = new ChasseurBuilder()
-            .WithName(name)
-            .WithBallesRestantes(nbBallesRestantes)
-            .Build();
-        _chasseurs.Add(chasseur);
-        return this;
-    }
-    public PartieDeChasseBuilder WithChasseurWithGalinettes(string name, int nbBallesRestantes, int nbGalinettes)
-    {
-        var chasseur = new ChasseurBuilder()
-            .WithName(name)
-            .WithBallesRestantes(nbBallesRestantes)
-            .WithGalinettes(nbGalinettes)
-            .Build();
-        _chasseurs.Add(chasseur);
+        _terrain = new Terrain(TestConstants.TerrainName) { NbGalinettes = nbGalinettes };
         return this;
     }
 
-    public PartieDeChasseBuilder WithPartieStatus(PartieStatus status)
+    public PartieDeChasseBuilder Avec(params ChasseurBuilder[] chasseurs)
+    {
+        foreach (var chasseur in chasseurs) {
+            _chasseurs.Add(chasseur);
+        }
+        return this;
+    }
+
+    public PartieDeChasseBuilder AlorsQueLaPartieEst(PartieStatus status)
     {
         _status = status;
         return this;
     }
 
-    public PartieDeChasseBuilder WithEvent(DateTime dateTime, string eventDescription)
+    public PartieDeChasseBuilder WithAnEventLog(DateTime dateTime, string eventDescription)
     {
         _events.Add(new Event(dateTime, eventDescription));
         return this;
     }
 
-    public PartieDeChasseBuilder WithEvents(params (DateTime date, string message)[] events)
+    public PartieDeChasseBuilder WithEventLogs(params (DateTime date, string message)[] events)
     {
         foreach ((var date, string message) in events) {
-            WithEvent(date, message);
+            WithAnEventLog(date, message);
         }
 
         return this;
@@ -68,6 +54,15 @@ public class PartieDeChasseBuilder
 
     public PartieDeChasse Build()
     {
-        return new PartieDeChasse(_id, _terrain) { Chasseurs = _chasseurs, Status = _status, Events = _events };
+        if (_terrain is null) {
+            Xunit.Assert.Fail("Le terrain doit être initialisé");
+        }
+
+        return new PartieDeChasse(_id, _terrain)
+        {
+            Chasseurs = _chasseurs.Select(p => p.Build()).ToList(),
+            Status = _status,
+            Events = _events
+        };
     }
 }

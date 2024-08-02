@@ -1,35 +1,23 @@
 using Bouchonnois.Domain;
 using Bouchonnois.Service.Exceptions;
-using Bouchonnois.Tests.Builders;
-using Bouchonnois.Tests.Doubles;
 
-namespace Bouchonnois.Tests.Service.PartieDeChasseService.UseCases;
+namespace Bouchonnois.Tests.Unit;
 
-public class ConsulterStatus
+public class ConsulterStatus : PartieDeChasseServiceTest
 {
     [Fact]
     public void QuandLaPartieVientDeDémarrer()
     {
-        var id = Guid.NewGuid();
-        var repository = new PartieDeChasseRepositoryForTests();
-        var service = new Bouchonnois.Service.PartieDeChasseService(repository, () => DateTime.Now);
-
-        var partieDeChasse = new PartieDeChasseBuilder()
-            .WithId(id)
-            .WithTerrain(TestConstants.TerrainName, 3)
-            // Attention, terrain avec 3 galinette mais 4 chassées, il manque une regle métier ?
-            .WithChasseur("Dédé", 20)
-            .WithChasseur("Bernard", 8)
-            .WithChasseurWithGalinettes("Robert", 12, 2)
-            .WithPartieStatus(PartieStatus.Terminée)
-            .WithEvent(new DateTime(2024, 4, 25, 9, 0, 12),
+        var partieDeChasse = AvecUnePartieDeChasseExistante(
+            NouvellePartieDeChasse
+                .AvecUnTerrainRicheEnGalinettes(3)
+                .Avec(Dédé, Bernard, Robert.AvecDesGalinettes(2))
+                .AlorsQueLaPartieEst(PartieStatus.Terminée)
+                .WithAnEventLog(new DateTime(2024, 4, 25, 9, 0, 12),
                 "La partie de chasse commence à Pitibon sur Sauldre avec Dédé (20 balles), Bernard (8 balles), Robert (12 balles)")
-            .Build();
+        );
 
-        repository.Add(partieDeChasse);
-
-
-        string status = service.ConsulterStatus(id);
+        string status = PartieDeChasseService.ConsulterStatus(partieDeChasse.Id);
 
         status.Should()
             .Be(
@@ -40,19 +28,12 @@ public class ConsulterStatus
     [Fact]
     public void QuandLaPartieEstTerminée()
     {
-        var id = Guid.NewGuid();
-        var repository = new PartieDeChasseRepositoryForTests();
-        var service = new Bouchonnois.Service.PartieDeChasseService(repository, () => DateTime.Now);
-
-        var partieDeChasse = new PartieDeChasseBuilder()
-            .WithId(id)
-            .WithTerrain(TestConstants.TerrainName, 3)
-            // Attention, terrain avec 3 galinette mais 4 chassées, il manque une regle métier ?
-            .WithChasseur("Dédé", 20)
-            .WithChasseur("Bernard", 8)
-            .WithChasseurWithGalinettes("Robert", 12, 2)
-            .WithPartieStatus(PartieStatus.Terminée)
-            .WithEvents(
+        var partieDeChasse = AvecUnePartieDeChasseExistante(
+            NouvellePartieDeChasse
+                .AvecUnTerrainRicheEnGalinettes(3)
+                .Avec(Dédé(), Bernard(), Robert().AvecDesGalinettes(2))
+                .AlorsQueLaPartieEst(PartieStatus.Terminée)
+                .WithEventLogs(
                 (new DateTime(2024, 4, 25, 9, 0, 12),
                     "La partie de chasse commence à Pitibon sur Sauldre avec Dédé (20 balles), Bernard (8 balles), Robert (12 balles)"),
                 (new DateTime(2024, 4, 25, 9, 10, 0), "Dédé tire"),
@@ -75,11 +56,9 @@ public class ConsulterStatus
                 (new DateTime(2024, 4, 25, 14, 41, 7), "Bernard tire -> T'as plus de balles mon vieux, chasse à la main"),
                 (new DateTime(2024, 4, 25, 15, 0, 0), "Robert tire sur une galinette"),
                 (new DateTime(2024, 4, 25, 15, 30, 0), "La partie de chasse est terminée, vainqueur :  Robert - 3 galinettes"))
-            .Build();
+        );
 
-        repository.Add(partieDeChasse);
-
-        string status = service.ConsulterStatus(id);
+        string status = PartieDeChasseService.ConsulterStatus(partieDeChasse.Id);
 
         status.Should()
             .BeEquivalentTo(
@@ -107,16 +86,17 @@ public class ConsulterStatus
             );
     }
 
-    [Fact]
-    public void EchoueCarPartieNexistePas()
+    public class Failure : PartieDeChasseServiceTest
     {
-        var id = Guid.NewGuid();
-        var repository = new PartieDeChasseRepositoryForTests();
-        var service = new Bouchonnois.Service.PartieDeChasseService(repository, () => DateTime.Now);
-        var reprendrePartieQuandPartieExistePas = () => service.ConsulterStatus(id);
+        [Fact]
+        public void EchoueCarPartieNexistePas()
+        {
+            var id = Guid.NewGuid();
+            var reprendrePartieQuandPartieExistePas = () => PartieDeChasseService.ConsulterStatus(id);
 
-        reprendrePartieQuandPartieExistePas.Should()
-            .Throw<LaPartieDeChasseNexistePas>();
-        repository.SavedPartieDeChasse().Should().BeNull();
+            reprendrePartieQuandPartieExistePas.Should()
+                .Throw<LaPartieDeChasseNexistePas>();
+            Repository.SavedPartieDeChasse().Should().BeNull();
+        }
     }
 }
