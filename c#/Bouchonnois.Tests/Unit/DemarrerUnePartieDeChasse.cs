@@ -1,35 +1,30 @@
 using Bouchonnois.Service.Exceptions;
+using Bouchonnois.Tests.Builders;
 
 namespace Bouchonnois.Tests.Unit;
 
 public class DemarrerUnePartieDeChasse : PartieDeChasseServiceTest
 {
-    [Fact]
-    public void AvecPlusieursChasseurs()
+    private PartieDeChasseCommandBuilder DémarrerUnePartieDeChasse()
     {
-        var chasseurs = new List<(string, int)>
-        {
-            ("Dédé", 20),
-            ("Bernard", 8),
-            ("Robert", 12)
-        };
-        var terrainDeChasse = (terrainName: TestConstants.TerrainName, 3);
-
+        return new PartieDeChasseCommandBuilder();
+    }
+    
+    [Fact]
+    public Task AvecPlusieursChasseurs()
+    {
+        var command = DémarrerUnePartieDeChasse()
+            .Avec((Data.Dédé, 20), (Data.Bernard, 8), (Data.Robert, 12))
+            .SurUnTerrainRicheEnGalinettes();
+        
         PartieDeChasseService.Demarrer(
-            terrainDeChasse,
-            chasseurs
+            command.Terrain,
+            command.Chasseurs
         );
 
-        Repository
-            .SavedPartieDeChasse()
-            .Should()
-            .HaveEmittedEvent(Now,
-                $"La partie de chasse commence à {TestConstants.TerrainName} avec Dédé (20 balles), Bernard (8 balles), Robert (12 balles)")
-            .And.ChasseurATiréSurUneGalinette("Dédé", 20, 0)
-            .And.ChasseurATiréSurUneGalinette("Bernard", 8, 0)
-            .And.ChasseurATiréSurUneGalinette("Robert", 12, 0)
-            .And.GalinettesSurLeTerrain(3)
-            .And.LaPartieEstEnCours();
+        return Verify(Repository
+                .SavedPartieDeChasse())
+            .DontScrubDateTimes();
     }
 
     public class Failure : PartieDeChasseServiceTest
@@ -38,7 +33,7 @@ public class DemarrerUnePartieDeChasse : PartieDeChasseServiceTest
         public void EchoueSansChasseurs()
         {
             var chasseurs = new List<(string, int)>();
-            var terrainDeChasse = (terrainName: TestConstants.TerrainName, 3);
+            var terrainDeChasse = (terrainName: Data.TerrainName, 3);
 
             Action demarrerPartieSansChasseurs = () => PartieDeChasseService.Demarrer(terrainDeChasse, chasseurs);
 
@@ -51,7 +46,7 @@ public class DemarrerUnePartieDeChasse : PartieDeChasseServiceTest
         public void EchoueAvecUnTerrainSansGalinettes()
         {
             var chasseurs = new List<(string, int)>();
-            var terrainDeChasse = (terrainName: TestConstants.TerrainName, 0);
+            var terrainDeChasse = (terrainName: Data.TerrainName, 0);
 
             Action demarrerPartieSansChasseurs = () => PartieDeChasseService.Demarrer(terrainDeChasse, chasseurs);
 
@@ -67,7 +62,7 @@ public class DemarrerUnePartieDeChasse : PartieDeChasseServiceTest
                 ("Dédé", 20),
                 ("Bernard", 0)
             };
-            var terrainDeChasse = (terrainName: TestConstants.TerrainName, 3);
+            var terrainDeChasse = (terrainName: Data.TerrainName, 3);
 
             Action demarrerPartieAvecChasseurSansBalle = () => PartieDeChasseService.Demarrer(terrainDeChasse, chasseurs);
 

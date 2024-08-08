@@ -6,8 +6,8 @@ public class PartieDeChasseBuilder
 {
     private readonly List<ChasseurBuilder> _chasseurs;
     private readonly List<Event> _events;
-
-    private Guid _id;
+    private readonly Guid _id;
+    
     private PartieStatus _status = PartieStatus.EnCours;
     private Terrain? _terrain;
     public PartieDeChasseBuilder()
@@ -19,7 +19,7 @@ public class PartieDeChasseBuilder
 
     public PartieDeChasseBuilder AvecUnTerrainRicheEnGalinettes(int nbGalinettes)
     {
-        _terrain = new Terrain(TestConstants.TerrainName) { NbGalinettes = nbGalinettes };
+        _terrain = new Terrain(Data.TerrainName) { NbGalinettes = nbGalinettes };
         return this;
     }
 
@@ -54,11 +54,7 @@ public class PartieDeChasseBuilder
 
     public PartieDeChasse Build()
     {
-        if (_terrain is null) {
-            Xunit.Assert.Fail("Le terrain doit être initialisé");
-        }
-
-        return new PartieDeChasse(_id, _terrain)
+        return new PartieDeChasse(_id, _terrain!)
         {
             Chasseurs = _chasseurs.Select(p => p.Build()).ToList(),
             Status = _status,

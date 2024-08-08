@@ -33,16 +33,16 @@ public class ChasseurBuilder
 
     public static ChasseurBuilder Dédé()
     {
-        return new ChasseurBuilder("Dédé", 20);
+        return new ChasseurBuilder(Data.Dédé, 20);
     }
 
     public static ChasseurBuilder Bernard()
     {
-        return new ChasseurBuilder("Bernard", 8);
+        return new ChasseurBuilder(Data.Bernard, 8);
     }
 
     public static ChasseurBuilder Robert()
     {
-        return new ChasseurBuilder("Robert", 12);
+        return new ChasseurBuilder(Data.Robert, 12);
     }
 }

@@ -13,16 +13,16 @@ public class Tirer : PartieDeChasseServiceTest
             .Avec(Dédé, Bernard, Robert)
         );
 
-        PartieDeChasseService.Tirer(partieDeChasse.Id, "Bernard");
+        PartieDeChasseService.Tirer(partieDeChasse.Id, Data.Bernard);
 
         Repository
             .SavedPartieDeChasse()
             .Should()
             .HaveEmittedEvent(Now, "Bernard tire")
             .And.LaPartieEstEnCours()
-            .And.ChasseurATiréSurUneGalinette("Dédé", 20, 0)
-            .And.ChasseurATiréSurUneGalinette("Bernard", 7, 0)
-            .And.ChasseurATiréSurUneGalinette("Robert", 12, 0)
+            .And.ChasseurATiréSurUneGalinette(Data.Dédé, 20, 0)
+            .And.ChasseurATiréSurUneGalinette(Data.Bernard, 7, 0)
+            .And.ChasseurATiréSurUneGalinette(Data.Robert, 12, 0)
             .And.GalinettesSurLeTerrain(3);
     }
 
@@ -32,7 +32,7 @@ public class Tirer : PartieDeChasseServiceTest
         public void EchoueCarPartieNexistePas()
         {
             var id = Guid.NewGuid();
-            var tirerQuandPartieExistePas = () => PartieDeChasseService.Tirer(id, "Bernard");
+            var tirerQuandPartieExistePas = () => PartieDeChasseService.Tirer(id, Data.Bernard);
 
             tirerQuandPartieExistePas.Should()
                 .Throw<LaPartieDeChasseNexistePas>();
@@ -47,7 +47,7 @@ public class Tirer : PartieDeChasseServiceTest
                 .Avec(Dédé, Bernard.AvecDesBallesRestantes(0), Robert)
             );
 
-            var tirerSansBalle = () => PartieDeChasseService.Tirer(partieDeChasse.Id, "Bernard");
+            var tirerSansBalle = () => PartieDeChasseService.Tirer(partieDeChasse.Id, Data.Bernard);
 
             tirerSansBalle.Should()
                 .Throw<TasPlusDeBallesMonVieuxChasseALaMain>();
@@ -71,9 +71,9 @@ public class Tirer : PartieDeChasseServiceTest
         }
 
         [Theory]
-        [InlineData("Bernard")]
+        [InlineData(Data.Bernard)]
+        [InlineData(Data.ChasseurInconnu)]
         [InlineData("Michel")]
-        [InlineData("Chasseur inconnu")]
         public void EchoueSiLesChasseursSontEnApero(string name)
         {
             var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
@@ -91,9 +91,9 @@ public class Tirer : PartieDeChasseServiceTest
         }
 
         [Theory]
-        [InlineData("Bernard")]
+        [InlineData(Data.Bernard)]
+        [InlineData(Data.ChasseurInconnu)]
         [InlineData("Michel")]
-        [InlineData("Chasseur inconnu")]
         public void EchoueSiLaPartieDeChasseEstTerminée(string name)
         {
             var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse

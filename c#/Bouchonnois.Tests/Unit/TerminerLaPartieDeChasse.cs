@@ -20,11 +20,11 @@ public class TerminerLaPartieDeChasse : PartieDeChasseServiceTest
             .Should()
             .HaveEmittedEvent(Now, "La partie de chasse est terminée, vainqueur : Robert - 2 galinettes")
             .And.LaPartieEstTerminée()
-            .And.ChasseurATiréSurUneGalinette("Dédé", 20, 0)
-            .And.ChasseurATiréSurUneGalinette("Bernard", 8, 0)
-            .And.ChasseurATiréSurUneGalinette("Robert", 12, 2);
+            .And.ChasseurATiréSurUneGalinette(Data.Dédé, 20, 0)
+            .And.ChasseurATiréSurUneGalinette(Data.Bernard, 8, 0)
+            .And.ChasseurATiréSurUneGalinette(Data.Robert, 12, 2);
 
-        meilleurChasseur.Should().Be("Robert");
+        meilleurChasseur.Should().Be(Data.Robert);
     }
 
     [Fact]
@@ -42,9 +42,9 @@ public class TerminerLaPartieDeChasse : PartieDeChasseServiceTest
             .Should()
             .HaveEmittedEvent(Now, "La partie de chasse est terminée, vainqueur : Robert - 2 galinettes")
             .And.LaPartieEstTerminée()
-            .And.ChasseurATiréSurUneGalinette("Robert", 12, 2);
+            .And.ChasseurATiréSurUneGalinette(Data.Robert, 12, 2);
 
-        meilleurChasseur.Should().Be("Robert");
+        meilleurChasseur.Should().Be(Data.Robert);
     }
 
     [Fact]
@@ -57,16 +57,16 @@ public class TerminerLaPartieDeChasse : PartieDeChasseServiceTest
         );
 
         string meilleurChasseur = PartieDeChasseService.TerminerLaPartie(partieDeChasse.Id);
-        meilleurChasseur.Should().Be("Dédé, Bernard");
+        meilleurChasseur.Should().Be($"{Data.Dédé}, {Data.Bernard}");
 
         Repository
             .SavedPartieDeChasse()
             .Should()
             .HaveEmittedEvent(Now, "La partie de chasse est terminée, vainqueur : Dédé - 2 galinettes, Bernard - 2 galinettes")
             .And.LaPartieEstTerminée()
-            .And.ChasseurATiréSurUneGalinette("Dédé", 20, 2)
-            .And.ChasseurATiréSurUneGalinette("Bernard", 8, 2)
-            .And.ChasseurATiréSurUneGalinette("Robert", 12, 0);
+            .And.ChasseurATiréSurUneGalinette(Data.Dédé, 20, 2)
+            .And.ChasseurATiréSurUneGalinette(Data.Bernard, 8, 2)
+            .And.ChasseurATiréSurUneGalinette(Data.Robert, 12, 0);
     }
 
     [Fact]
@@ -86,9 +86,9 @@ public class TerminerLaPartieDeChasse : PartieDeChasseServiceTest
             .Should()
             .HaveEmittedEvent(Now, "La partie de chasse est terminée, vainqueur : Brocouille")
             .And.LaPartieEstTerminée()
-            .And.ChasseurATiréSurUneGalinette("Dédé", 20, 0)
-            .And.ChasseurATiréSurUneGalinette("Bernard", 8, 0)
-            .And.ChasseurATiréSurUneGalinette("Robert", 12, 0);
+            .And.ChasseurATiréSurUneGalinette(Data.Dédé, 20, 0)
+            .And.ChasseurATiréSurUneGalinette(Data.Bernard, 8, 0)
+            .And.ChasseurATiréSurUneGalinette(Data.Robert, 12, 0);
     }
 
     [Fact]
@@ -109,11 +109,11 @@ public class TerminerLaPartieDeChasse : PartieDeChasseServiceTest
             .Should()
             .HaveEmittedEvent(Now, "La partie de chasse est terminée, vainqueur : Dédé - 3 galinettes, Bernard - 3 galinettes, Robert - 3 galinettes")
             .And.LaPartieEstTerminée()
-            .And.ChasseurATiréSurUneGalinette("Dédé", 20, 3)
-            .And.ChasseurATiréSurUneGalinette("Bernard", 8, 3)
-            .And.ChasseurATiréSurUneGalinette("Robert", 12, 3);
+            .And.ChasseurATiréSurUneGalinette(Data.Dédé, 20, 3)
+            .And.ChasseurATiréSurUneGalinette(Data.Bernard, 8, 3)
+            .And.ChasseurATiréSurUneGalinette(Data.Robert, 12, 3);
 
-        meilleurChasseur.Should().Be("Dédé, Bernard, Robert");
+        meilleurChasseur.Should().Be($"{Data.Dédé}, {Data.Bernard}, {Data.Robert}");
     }
 
     public class Failure : PartieDeChasseServiceTest
