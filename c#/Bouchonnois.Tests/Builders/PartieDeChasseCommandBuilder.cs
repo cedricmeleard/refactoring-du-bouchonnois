@@ -1,12 +1,8 @@
 namespace Bouchonnois.Tests.Builders;
 
-internal class PartieDeChasseCommandBuilder
+public class PartieDeChasseCommandBuilder
 {
-    private readonly List<(string, int)> _chasseurs;
-    public PartieDeChasseCommandBuilder()
-    {
-        _chasseurs = new List<(string, int)>();
-    }
+    private readonly List<(string, int)> _chasseurs = new();
 
     public PartieDeChasseCommandBuilder Avec(params (string, int)[] chasseurs)
     {

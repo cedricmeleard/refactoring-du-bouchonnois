@@ -1,6 +1,6 @@
 namespace Bouchonnois.Tests.Builders;
 
-internal class PartieDeChasseCommand
+public class PartieDeChasseCommand
 {
     public PartieDeChasseCommand()
     {

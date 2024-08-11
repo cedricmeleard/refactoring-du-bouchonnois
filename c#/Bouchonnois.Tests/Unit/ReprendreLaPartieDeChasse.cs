@@ -22,9 +22,9 @@ public class ReprendreLaPartieDeChasse : PartieDeChasseServiceTest
             .HaveEmittedEvent(Now, "Reprise de la chasse")
             .And.GalinettesSurLeTerrain(3)
             .And.LaPartieEstEnCours()
-            .And.ChasseurATiréSurUneGalinette("Dédé", 20, 0)
-            .And.ChasseurATiréSurUneGalinette("Bernard", 8, 0)
-            .And.ChasseurATiréSurUneGalinette("Robert", 12, 0);
+            .And.ChasseurATiréSurUneGalinette(Data.Dédé, 20, 0)
+            .And.ChasseurATiréSurUneGalinette(Data.Bernard, 8, 0)
+            .And.ChasseurATiréSurUneGalinette(Data.Robert, 12, 0);
     }
 
     public class Failure : PartieDeChasseServiceTest
