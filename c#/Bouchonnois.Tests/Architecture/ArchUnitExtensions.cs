@@ -11,7 +11,7 @@ public static class ArchUnitExtensions
 {
     private readonly static ArchUnitNET.Domain.Architecture Architecture =
         new ArchLoader()
-            .LoadAssemblies(typeof(DemarrerUnePartieDeChasseUseCase).Assembly)
+            .LoadAssemblies(typeof(DemarrerUnePartieDeChasse).Assembly)
             .Build();
 
     public static GivenTypesConjunction TypesInAssembly() =>

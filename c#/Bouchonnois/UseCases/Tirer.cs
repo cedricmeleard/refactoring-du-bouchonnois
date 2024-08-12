@@ -3,17 +3,17 @@ using Bouchonnois.UseCases.Exceptions;
 
 namespace Bouchonnois.UseCases;
 
-public class TirerUseCase
+public class Tirer
 {
     private readonly IPartieDeChasseRepository _repository;
     private readonly Func<DateTime> _timeProvider;
-    public TirerUseCase(IPartieDeChasseRepository repository, Func<DateTime> timeProvider)
+    public Tirer(IPartieDeChasseRepository repository, Func<DateTime> timeProvider)
     {
         _repository = repository;
         _timeProvider = timeProvider;
     }
 
-    public void Tirer(Guid id, string chasseur)
+    public void Handle(Guid id, string chasseur)
     {
         var partieDeChasse = _repository.GetById(id);
 

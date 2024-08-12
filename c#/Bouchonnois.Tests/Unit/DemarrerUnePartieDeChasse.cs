@@ -9,10 +9,10 @@ namespace Bouchonnois.Tests.Unit;
 
 public class DemarrerUnePartieDeChasse : PartieDeChasseServiceTest
 {
-    private readonly DemarrerUnePartieDeChasseUseCase _useCase;
+    private readonly UseCases.DemarrerUnePartieDeChasse _useCase;
     public DemarrerUnePartieDeChasse()
     {
-        _useCase = new DemarrerUnePartieDeChasseUseCase(Repository, TimeProvider);
+        _useCase = new UseCases.DemarrerUnePartieDeChasse(Repository, TimeProvider);
     }
 
     [Fact]
@@ -22,7 +22,7 @@ public class DemarrerUnePartieDeChasse : PartieDeChasseServiceTest
             .Avec((Data.Dédé, 20), (Data.Bernard, 8), (Data.Robert, 12))
             .SurUnTerrainRicheEnGalinettes();
 
-        _useCase.Demarrer(
+        _useCase.Handle(
             command.Terrain,
             command.Chasseurs
         );
@@ -39,7 +39,7 @@ public class DemarrerUnePartieDeChasse : PartieDeChasseServiceTest
             (terrain, chasseurs) => DémarreLaPartieAvecSuccès(terrain, chasseurs)
         );
     private bool DémarreLaPartieAvecSuccès((string nom, int nbGalinettes) terrain, FSharpList<(string nom, int nbBalles)> chasseurs)
-        => _useCase.Demarrer(
+        => _useCase.Handle(
             terrain,
             chasseurs.ToList()) == Repository.SavedPartieDeChasse()!.Id;
 
@@ -79,5 +79,5 @@ public class DemarrerUnePartieDeChasse : PartieDeChasseServiceTest
         (string nom, int nbGalinettes) terrain,
         IEnumerable<(string nom, int nbBalles)> chasseurs,
         Func<PartieDeChasse?, bool>? assert = null) where TException : Exception
-        => MustFailWith<TException>(() => _useCase.Demarrer(terrain, chasseurs.ToList()), assert);
+        => MustFailWith<TException>(() => _useCase.Handle(terrain, chasseurs.ToList()), assert);
 }

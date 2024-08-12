@@ -6,10 +6,10 @@ namespace Bouchonnois.Tests.Unit;
 
 public class PrendreLApéro : PartieDeChasseServiceTest
 {
-    private readonly PrendreLAperoUseCase _useCase;
+    private readonly PrendreLApero _useCase;
     public PrendreLApéro()
     {
-        _useCase = new PrendreLAperoUseCase(Repository, TimeProvider);
+        _useCase = new PrendreLApero(Repository, TimeProvider);
     }
 
     [Fact]
@@ -20,7 +20,7 @@ public class PrendreLApéro : PartieDeChasseServiceTest
                 .AvecUnTerrainRicheEnGalinettes(3)
                 .Avec(Dédé, Bernard, Robert)
         );
-        _useCase.PrendreLapéro(partieDeChasse.Id);
+        _useCase.Handle(partieDeChasse.Id);
 
         Repository
             .SavedPartieDeChasse()
@@ -33,7 +33,7 @@ public class PrendreLApéro : PartieDeChasseServiceTest
     public void EchoueCarPartieNexistePas()
     {
         var id = Guid.NewGuid();
-        var apéroQuandPartieExistePas = () => _useCase.PrendreLapéro(id);
+        var apéroQuandPartieExistePas = () => _useCase.Handle(id);
 
         apéroQuandPartieExistePas.Should()
             .Throw<LaPartieDeChasseNexistePas>();
@@ -49,7 +49,7 @@ public class PrendreLApéro : PartieDeChasseServiceTest
             .AlorsQueLaPartieEst(PartieStatus.Apéro)
         );
 
-        var prendreLApéroQuandOnPrendDéjàLapéro = () => _useCase.PrendreLapéro(partieDeChasse.Id);
+        var prendreLApéroQuandOnPrendDéjàLapéro = () => _useCase.Handle(partieDeChasse.Id);
 
         prendreLApéroQuandOnPrendDéjàLapéro.Should()
             .Throw<OnEstDéjàEnTrainDePrendreLapéro>();
@@ -65,7 +65,7 @@ public class PrendreLApéro : PartieDeChasseServiceTest
             .AlorsQueLaPartieEst(PartieStatus.Terminée)
         );
 
-        var prendreLapéroQuandTerminée = () => _useCase.PrendreLapéro(partieDeChasse.Id);
+        var prendreLapéroQuandTerminée = () => _useCase.Handle(partieDeChasse.Id);
 
         prendreLapéroQuandTerminée.Should()
             .Throw<OnPrendPasLapéroQuandLaPartieEstTerminée>();

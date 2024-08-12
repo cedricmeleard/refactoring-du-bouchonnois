@@ -3,16 +3,16 @@ using Bouchonnois.UseCases.Exceptions;
 
 namespace Bouchonnois.UseCases;
 
-public class TerminerLaPartieUseCase
+public class TerminerLaPartie
 {
     private readonly IPartieDeChasseRepository _repository;
     private readonly Func<DateTime> _timeProvider;
-    public TerminerLaPartieUseCase(IPartieDeChasseRepository repository, Func<DateTime> timeProvider)
+    public TerminerLaPartie(IPartieDeChasseRepository repository, Func<DateTime> timeProvider)
     {
         _repository = repository;
         _timeProvider = timeProvider;
     }
-    public string TerminerLaPartie(Guid id)
+    public string Handle(Guid id)
     {
         var partieDeChasse = _repository.GetById(id);
 

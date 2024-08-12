@@ -3,14 +3,14 @@ using Bouchonnois.UseCases.Exceptions;
 
 namespace Bouchonnois.UseCases;
 
-public class ConsulterStatusUseCase
+public class ConsulterStatus
 {
     private readonly IPartieDeChasseRepository _repository;
-    public ConsulterStatusUseCase(IPartieDeChasseRepository repository)
+    public ConsulterStatus(IPartieDeChasseRepository repository)
     {
         _repository = repository;
     }
-    public string ConsulterStatus(Guid id)
+    public string Handle(Guid id)
     {
         var partieDeChasse = _repository.GetById(id);
 

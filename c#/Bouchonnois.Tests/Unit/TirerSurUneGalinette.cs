@@ -6,10 +6,10 @@ namespace Bouchonnois.Tests.Unit;
 
 public class TirerSurUneGalinette : PartieDeChasseServiceTest
 {
-    private readonly TirerSurUneGalinetteUseCase _useCase;
+    private readonly UseCases.TirerSurUneGalinette _useCase;
     public TirerSurUneGalinette()
     {
-        _useCase = new TirerSurUneGalinetteUseCase(Repository, TimeProvider);
+        _useCase = new UseCases.TirerSurUneGalinette(Repository, TimeProvider);
     }
 
     [Fact]
@@ -22,7 +22,7 @@ public class TirerSurUneGalinette : PartieDeChasseServiceTest
         );
 
         // Act
-        _useCase.TirerSurUneGalinette(partieDeChasse.Id, Data.Bernard);
+        _useCase.Handle(partieDeChasse.Id, Data.Bernard);
 
         // Assert
         Repository
@@ -37,7 +37,7 @@ public class TirerSurUneGalinette : PartieDeChasseServiceTest
     public void EchoueCarPartieNexistePas()
     {
         var id = Guid.NewGuid();
-        var tirerQuandPartieExistePas = () => _useCase.TirerSurUneGalinette(id, Data.Bernard);
+        var tirerQuandPartieExistePas = () => _useCase.Handle(id, Data.Bernard);
 
         tirerQuandPartieExistePas.Should()
             .Throw<LaPartieDeChasseNexistePas>();
@@ -52,7 +52,7 @@ public class TirerSurUneGalinette : PartieDeChasseServiceTest
             .Avec(Dédé, Bernard.AvecDesBallesRestantes(0), Robert)
         );
 
-        var tirerSansBalle = () => _useCase.TirerSurUneGalinette(partieDeChasse.Id, Data.Bernard);
+        var tirerSansBalle = () => _useCase.Handle(partieDeChasse.Id, Data.Bernard);
 
         tirerSansBalle.Should()
             .Throw<TasPlusDeBallesMonVieuxChasseALaMain>();
@@ -68,7 +68,7 @@ public class TirerSurUneGalinette : PartieDeChasseServiceTest
             .Avec(Dédé, Bernard, Robert)
         );
 
-        var tirerAlorsQuePasDeGalinettes = () => _useCase.TirerSurUneGalinette(partieDeChasse.Id, Data.Bernard);
+        var tirerAlorsQuePasDeGalinettes = () => _useCase.Handle(partieDeChasse.Id, Data.Bernard);
 
         tirerAlorsQuePasDeGalinettes.Should()
             .Throw<TasTropPicoléMonVieuxTasRienTouché>();
@@ -83,7 +83,7 @@ public class TirerSurUneGalinette : PartieDeChasseServiceTest
             .Avec(Dédé, Bernard, Robert)
         );
 
-        var chasseurInconnuVeutTirer = () => _useCase.TirerSurUneGalinette(partieDeChasse.Id, "Michel");
+        var chasseurInconnuVeutTirer = () => _useCase.Handle(partieDeChasse.Id, "Michel");
 
         chasseurInconnuVeutTirer.Should()
             .Throw<ChasseurInconnu>()
@@ -100,7 +100,7 @@ public class TirerSurUneGalinette : PartieDeChasseServiceTest
             .AlorsQueLaPartieEst(PartieStatus.Apéro)
         );
 
-        var tirerEnPleinApéro = () => _useCase.TirerSurUneGalinette(partieDeChasse.Id, Data.ChasseurInconnu);
+        var tirerEnPleinApéro = () => _useCase.Handle(partieDeChasse.Id, Data.ChasseurInconnu);
 
         tirerEnPleinApéro.Should()
             .Throw<OnTirePasPendantLapéroCestSacré>();
@@ -117,7 +117,7 @@ public class TirerSurUneGalinette : PartieDeChasseServiceTest
             .AlorsQueLaPartieEst(PartieStatus.Terminée)
         );
 
-        var tirerQuandTerminée = () => _useCase.TirerSurUneGalinette(partieDeChasse.Id, Data.ChasseurInconnu);
+        var tirerQuandTerminée = () => _useCase.Handle(partieDeChasse.Id, Data.ChasseurInconnu);
 
         tirerQuandTerminée.Should()
             .Throw<OnTirePasQuandLaPartieEstTerminée>();

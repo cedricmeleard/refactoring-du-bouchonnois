@@ -7,13 +7,13 @@ namespace Bouchonnois.Tests.Acceptance;
 
 public class ScenarioTests
 {
-    private readonly ConsulterStatusUseCase _consulterStatus;
-    private readonly DemarrerUnePartieDeChasseUseCase _demarrerPartieDeChasse;
-    private readonly PrendreLAperoUseCase _prendreLapéro;
-    private readonly ReprendreLaPartieUseCase _reprendreLaPartie;
-    private readonly TerminerLaPartieUseCase _terminerLaPartie;
-    private readonly TirerUseCase _tirer;
-    private readonly TirerSurUneGalinetteUseCase _tirerSurUneGalinette;
+    private readonly ConsulterStatus _consulterStatus;
+    private readonly DemarrerUnePartieDeChasse _demarrerPartieDeChasse;
+    private readonly PrendreLApero _prendreLapéro;
+    private readonly ReprendreLaPartie _reprendreLaPartie;
+    private readonly TerminerLaPartie _terminerLaPartie;
+    private readonly Tirer _tirer;
+    private readonly TirerSurUneGalinette _tirerSurUneGalinette;
     private DateTime _time = new(2024, 4, 25, 9, 0, 0);
 
     public ScenarioTests()
@@ -21,13 +21,13 @@ public class ScenarioTests
         var repository = new PartieDeChasseRepositoryForTests();
         var timeProvider = () => _time;
 
-        _demarrerPartieDeChasse = new DemarrerUnePartieDeChasseUseCase(repository, timeProvider);
-        _tirer = new TirerUseCase(repository, timeProvider);
-        _tirerSurUneGalinette = new TirerSurUneGalinetteUseCase(repository, timeProvider);
-        _prendreLapéro = new PrendreLAperoUseCase(repository, timeProvider);
-        _reprendreLaPartie = new ReprendreLaPartieUseCase(repository, timeProvider);
-        _terminerLaPartie = new TerminerLaPartieUseCase(repository, timeProvider);
-        _consulterStatus = new ConsulterStatusUseCase(repository);
+        _demarrerPartieDeChasse = new DemarrerUnePartieDeChasse(repository, timeProvider);
+        _tirer = new Tirer(repository, timeProvider);
+        _tirerSurUneGalinette = new TirerSurUneGalinette(repository, timeProvider);
+        _prendreLapéro = new PrendreLApero(repository, timeProvider);
+        _reprendreLaPartie = new ReprendreLaPartie(repository, timeProvider);
+        _terminerLaPartie = new TerminerLaPartie(repository, timeProvider);
+        _consulterStatus = new ConsulterStatus(repository);
     }
 
     [Fact]
@@ -37,32 +37,32 @@ public class ScenarioTests
             .Avec((Data.Dédé, 20), (Data.Bernard, 8), (Data.Robert, 12))
             .SurUnTerrainRicheEnGalinettes(4);
 
-        var id = _demarrerPartieDeChasse.Demarrer(
+        var id = _demarrerPartieDeChasse.Handle(
             command.Terrain,
             command.Chasseurs
         );
 
-        After(10.Minutes(), () => _tirer.Tirer(id, Data.Dédé));
-        After(30.Minutes(), () => _tirerSurUneGalinette.TirerSurUneGalinette(id, Data.Robert));
-        After(20.Minutes(), () => _prendreLapéro.PrendreLapéro(id));
-        After(1.Hours(), () => _reprendreLaPartie.ReprendreLaPartie(id));
-        After(2.Minutes(), () => _tirer.Tirer(id, Data.Bernard));
-        After(1.Minutes(), () => _tirer.Tirer(id, Data.Bernard));
-        After(1.Minutes(), () => _tirerSurUneGalinette.TirerSurUneGalinette(id, Data.Dédé));
-        After(26.Minutes(), () => _tirerSurUneGalinette.TirerSurUneGalinette(id, Data.Robert));
-        After(10.Minutes(), () => _prendreLapéro.PrendreLapéro(id));
-        After(170.Minutes(), () => _reprendreLaPartie.ReprendreLaPartie(id));
-        After(11.Minutes(), () => _tirer.Tirer(id, Data.Bernard));
-        After(1.Seconds(), () => _tirer.Tirer(id, Data.Bernard));
-        After(1.Seconds(), () => _tirer.Tirer(id, Data.Bernard));
-        After(1.Seconds(), () => _tirer.Tirer(id, Data.Bernard));
-        After(1.Seconds(), () => _tirer.Tirer(id, Data.Bernard));
-        After(1.Seconds(), () => _tirer.Tirer(id, Data.Bernard));
-        After(1.Seconds(), () => _tirer.Tirer(id, Data.Bernard));
-        After(19.Minutes(), () => _tirerSurUneGalinette.TirerSurUneGalinette(id, Data.Robert));
-        After(30.Minutes(), () => _terminerLaPartie.TerminerLaPartie(id));
+        After(10.Minutes(), () => _tirer.Handle(id, Data.Dédé));
+        After(30.Minutes(), () => _tirerSurUneGalinette.Handle(id, Data.Robert));
+        After(20.Minutes(), () => _prendreLapéro.Handle(id));
+        After(1.Hours(), () => _reprendreLaPartie.Handle(id));
+        After(2.Minutes(), () => _tirer.Handle(id, Data.Bernard));
+        After(1.Minutes(), () => _tirer.Handle(id, Data.Bernard));
+        After(1.Minutes(), () => _tirerSurUneGalinette.Handle(id, Data.Dédé));
+        After(26.Minutes(), () => _tirerSurUneGalinette.Handle(id, Data.Robert));
+        After(10.Minutes(), () => _prendreLapéro.Handle(id));
+        After(170.Minutes(), () => _reprendreLaPartie.Handle(id));
+        After(11.Minutes(), () => _tirer.Handle(id, Data.Bernard));
+        After(1.Seconds(), () => _tirer.Handle(id, Data.Bernard));
+        After(1.Seconds(), () => _tirer.Handle(id, Data.Bernard));
+        After(1.Seconds(), () => _tirer.Handle(id, Data.Bernard));
+        After(1.Seconds(), () => _tirer.Handle(id, Data.Bernard));
+        After(1.Seconds(), () => _tirer.Handle(id, Data.Bernard));
+        After(1.Seconds(), () => _tirer.Handle(id, Data.Bernard));
+        After(19.Minutes(), () => _tirerSurUneGalinette.Handle(id, Data.Robert));
+        After(30.Minutes(), () => _terminerLaPartie.Handle(id));
 
-        return Verify(_consulterStatus.ConsulterStatus(id));
+        return Verify(_consulterStatus.Handle(id));
     }
     private void After(TimeSpan timeToAdd, Action act)
     {

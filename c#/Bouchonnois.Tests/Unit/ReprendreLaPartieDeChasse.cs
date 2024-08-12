@@ -6,10 +6,10 @@ namespace Bouchonnois.Tests.Unit;
 
 public class ReprendreLaPartieDeChasse : PartieDeChasseServiceTest
 {
-    private readonly ReprendreLaPartieUseCase _useCase;
+    private readonly ReprendreLaPartie _useCase;
     public ReprendreLaPartieDeChasse()
     {
-        _useCase = new ReprendreLaPartieUseCase(Repository, TimeProvider);
+        _useCase = new ReprendreLaPartie(Repository, TimeProvider);
     }
 
     [Fact]
@@ -21,7 +21,7 @@ public class ReprendreLaPartieDeChasse : PartieDeChasseServiceTest
             .AlorsQueLaPartieEst(PartieStatus.Apéro)
         );
 
-        _useCase.ReprendreLaPartie(partieDeChasse.Id);
+        _useCase.Handle(partieDeChasse.Id);
 
         Repository
             .SavedPartieDeChasse()
@@ -38,7 +38,7 @@ public class ReprendreLaPartieDeChasse : PartieDeChasseServiceTest
     public void EchoueCarPartieNexistePas()
     {
         var id = Guid.NewGuid();
-        var reprendrePartieQuandPartieExistePas = () => _useCase.ReprendreLaPartie(id);
+        var reprendrePartieQuandPartieExistePas = () => _useCase.Handle(id);
 
         reprendrePartieQuandPartieExistePas.Should()
             .Throw<LaPartieDeChasseNexistePas>();
@@ -53,7 +53,7 @@ public class ReprendreLaPartieDeChasse : PartieDeChasseServiceTest
             .Avec(Dédé, Bernard, Robert)
         );
 
-        var reprendreLaPartieQuandChasseEnCours = () => _useCase.ReprendreLaPartie(partieDeChasse.Id);
+        var reprendreLaPartieQuandChasseEnCours = () => _useCase.Handle(partieDeChasse.Id);
 
         reprendreLaPartieQuandChasseEnCours.Should()
             .Throw<LaChasseEstDéjàEnCours>();
@@ -71,7 +71,7 @@ public class ReprendreLaPartieDeChasse : PartieDeChasseServiceTest
                 .AlorsQueLaPartieEst(PartieStatus.Terminée)
         );
 
-        var prendreLapéroQuandTerminée = () => _useCase.ReprendreLaPartie(partieDeChasse.Id);
+        var prendreLapéroQuandTerminée = () => _useCase.Handle(partieDeChasse.Id);
 
         prendreLapéroQuandTerminée.Should()
             .Throw<QuandCestFiniCestFini>();

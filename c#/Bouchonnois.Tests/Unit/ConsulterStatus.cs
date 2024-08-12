@@ -6,10 +6,10 @@ namespace Bouchonnois.Tests.Unit;
 
 public class ConsulterStatus : PartieDeChasseServiceTest
 {
-    private readonly ConsulterStatusUseCase _useCase;
+    private readonly UseCases.ConsulterStatus _useCase;
     public ConsulterStatus()
     {
-        _useCase = new ConsulterStatusUseCase(Repository);
+        _useCase = new UseCases.ConsulterStatus(Repository);
     }
 
     [Fact]
@@ -24,7 +24,7 @@ public class ConsulterStatus : PartieDeChasseServiceTest
                     "La partie de chasse commence à Pitibon sur Sauldre avec Dédé (20 balles), Bernard (8 balles), Robert (12 balles)")
         );
 
-        string status = _useCase.ConsulterStatus(partieDeChasse.Id);
+        string status = _useCase.Handle(partieDeChasse.Id);
 
         status.Should()
             .Be(
@@ -65,14 +65,14 @@ public class ConsulterStatus : PartieDeChasseServiceTest
                     (new DateTime(2024, 4, 25, 15, 30, 0), "La partie de chasse est terminée, vainqueur :  Robert - 3 galinettes"))
         );
 
-        return Verify(_useCase.ConsulterStatus(partieDeChasse.Id));
+        return Verify(_useCase.Handle(partieDeChasse.Id));
     }
 
     [Fact]
     public void EchoueCarPartieNexistePas()
     {
         var id = Guid.NewGuid();
-        var reprendrePartieQuandPartieExistePas = () => _useCase.ConsulterStatus(id);
+        var reprendrePartieQuandPartieExistePas = () => _useCase.Handle(id);
 
         reprendrePartieQuandPartieExistePas.Should()
             .Throw<LaPartieDeChasseNexistePas>();
