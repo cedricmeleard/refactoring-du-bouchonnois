@@ -1,10 +1,17 @@
 using Bouchonnois.Domain;
-using Bouchonnois.Service.Exceptions;
+using Bouchonnois.UseCases;
+using Bouchonnois.UseCases.Exceptions;
 
 namespace Bouchonnois.Tests.Unit;
 
 public class TerminerLaPartieDeChasse : PartieDeChasseServiceTest
 {
+    private readonly TerminerLaPartieUseCase _useCase;
+    public TerminerLaPartieDeChasse()
+    {
+        _useCase = new TerminerLaPartieUseCase(Repository, TimeProvider);
+    }
+
     [Fact]
     public void QuandLaPartieEstEnCoursEt1SeulChasseurGagne()
     {
@@ -13,7 +20,7 @@ public class TerminerLaPartieDeChasse : PartieDeChasseServiceTest
             .Avec(Dédé, Bernard, Robert.AvecDesGalinettes(2))
         );
 
-        string meilleurChasseur = PartieDeChasseService.TerminerLaPartie(partieDeChasse.Id);
+        string meilleurChasseur = _useCase.TerminerLaPartie(partieDeChasse.Id);
 
         Repository
             .SavedPartieDeChasse()
@@ -35,7 +42,7 @@ public class TerminerLaPartieDeChasse : PartieDeChasseServiceTest
             .Avec(Robert.AvecDesGalinettes(2))
         );
 
-        string meilleurChasseur = PartieDeChasseService.TerminerLaPartie(partieDeChasse.Id);
+        string meilleurChasseur = _useCase.TerminerLaPartie(partieDeChasse.Id);
 
         Repository
             .SavedPartieDeChasse()
@@ -56,7 +63,7 @@ public class TerminerLaPartieDeChasse : PartieDeChasseServiceTest
             .Avec(Dédé.AvecDesGalinettes(2), Bernard.AvecDesGalinettes(2), Robert)
         );
 
-        string meilleurChasseur = PartieDeChasseService.TerminerLaPartie(partieDeChasse.Id);
+        string meilleurChasseur = _useCase.TerminerLaPartie(partieDeChasse.Id);
         meilleurChasseur.Should().Be($"{Data.Dédé}, {Data.Bernard}");
 
         Repository
@@ -78,7 +85,7 @@ public class TerminerLaPartieDeChasse : PartieDeChasseServiceTest
             .Avec(Dédé, Bernard, Robert)
         );
 
-        string meilleurChasseur = PartieDeChasseService.TerminerLaPartie(partieDeChasse.Id);
+        string meilleurChasseur = _useCase.TerminerLaPartie(partieDeChasse.Id);
         meilleurChasseur.Should().Be("Brocouille");
 
         Repository
@@ -97,12 +104,12 @@ public class TerminerLaPartieDeChasse : PartieDeChasseServiceTest
         var partieDeChasse = AvecUnePartieDeChasseExistante(
             NouvellePartieDeChasse
                 .AvecUnTerrainRicheEnGalinettes(3)
-            // Attention, terrain avec 3 galinette mais 4 chassées, il manque une regle métier ?
+                // Attention, terrain avec 3 galinette mais 4 chassées, il manque une regle métier ?
                 .Avec(Dédé.AvecDesGalinettes(3), Bernard.AvecDesGalinettes(3), Robert.AvecDesGalinettes(3))
                 .AlorsQueLaPartieEst(PartieStatus.Apéro)
         );
 
-        string meilleurChasseur = PartieDeChasseService.TerminerLaPartie(partieDeChasse.Id);
+        string meilleurChasseur = _useCase.TerminerLaPartie(partieDeChasse.Id);
 
         Repository
             .SavedPartieDeChasse()
@@ -116,24 +123,21 @@ public class TerminerLaPartieDeChasse : PartieDeChasseServiceTest
         meilleurChasseur.Should().Be($"{Data.Dédé}, {Data.Bernard}, {Data.Robert}");
     }
 
-    public class Failure : PartieDeChasseServiceTest
+    [Fact]
+    public void EchoueSiLaPartieDeChasseEstDéjàTerminée()
     {
-        [Fact]
-        public void EchoueSiLaPartieDeChasseEstDéjàTerminée()
-        {
-            var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
-                .AvecUnTerrainRicheEnGalinettes(3)
-                // Attention, terrain avec 3 galinette mais 4 chassées, il manque une regle métier ?
-                .Avec(Dédé, Bernard, Robert.AvecDesGalinettes(2))
-                .AlorsQueLaPartieEst(PartieStatus.Terminée)
-            );
+        var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
+            .AvecUnTerrainRicheEnGalinettes(3)
+            // Attention, terrain avec 3 galinette mais 4 chassées, il manque une regle métier ?
+            .Avec(Dédé, Bernard, Robert.AvecDesGalinettes(2))
+            .AlorsQueLaPartieEst(PartieStatus.Terminée)
+        );
 
-            var prendreLapéroQuandTerminée = () => PartieDeChasseService.TerminerLaPartie(partieDeChasse.Id);
+        var prendreLapéroQuandTerminée = () => _useCase.TerminerLaPartie(partieDeChasse.Id);
 
-            prendreLapéroQuandTerminée.Should()
-                .Throw<QuandCestFiniCestFini>();
+        prendreLapéroQuandTerminée.Should()
+            .Throw<QuandCestFiniCestFini>();
 
-            Repository.SavedPartieDeChasse().Should().BeNull();
-        }
+        Repository.SavedPartieDeChasse().Should().BeNull();
     }
 }

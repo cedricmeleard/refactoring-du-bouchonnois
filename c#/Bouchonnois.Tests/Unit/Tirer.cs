@@ -1,10 +1,18 @@
 using Bouchonnois.Domain;
-using Bouchonnois.Service.Exceptions;
+using Bouchonnois.UseCases;
+using Bouchonnois.UseCases.Exceptions;
 
 namespace Bouchonnois.Tests.Unit;
 
 public class Tirer : PartieDeChasseServiceTest
 {
+    private readonly TirerUseCase _useCase;
+    public Tirer()
+    {
+        _useCase = new TirerUseCase(Repository, TimeProvider);
+    }
+
+
     [Fact]
     public void AvecUnChasseurAyantDesBalles()
     {
@@ -13,7 +21,7 @@ public class Tirer : PartieDeChasseServiceTest
             .Avec(Dédé, Bernard, Robert)
         );
 
-        PartieDeChasseService.Tirer(partieDeChasse.Id, Data.Bernard);
+        _useCase.Tirer(partieDeChasse.Id, Data.Bernard);
 
         Repository
             .SavedPartieDeChasse()
@@ -26,88 +34,85 @@ public class Tirer : PartieDeChasseServiceTest
             .And.GalinettesSurLeTerrain(3);
     }
 
-    public class Failure : PartieDeChasseServiceTest
+    [Fact]
+    public void EchoueCarPartieNexistePas()
     {
-        [Fact]
-        public void EchoueCarPartieNexistePas()
-        {
-            var id = Guid.NewGuid();
-            var tirerQuandPartieExistePas = () => PartieDeChasseService.Tirer(id, Data.Bernard);
+        var id = Guid.NewGuid();
+        var tirerQuandPartieExistePas = () => _useCase.Tirer(id, Data.Bernard);
 
-            tirerQuandPartieExistePas.Should()
-                .Throw<LaPartieDeChasseNexistePas>();
-            Repository.SavedPartieDeChasse().Should().BeNull();
-        }
+        tirerQuandPartieExistePas.Should()
+            .Throw<LaPartieDeChasseNexistePas>();
+        Repository.SavedPartieDeChasse().Should().BeNull();
+    }
 
-        [Fact]
-        public void EchoueAvecUnChasseurNayantPlusDeBalles()
-        {
-            var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
-                .AvecUnTerrainRicheEnGalinettes(3)
-                .Avec(Dédé, Bernard.AvecDesBallesRestantes(0), Robert)
-            );
+    [Fact]
+    public void EchoueAvecUnChasseurNayantPlusDeBalles()
+    {
+        var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
+            .AvecUnTerrainRicheEnGalinettes(3)
+            .Avec(Dédé, Bernard.AvecDesBallesRestantes(0), Robert)
+        );
 
-            var tirerSansBalle = () => PartieDeChasseService.Tirer(partieDeChasse.Id, Data.Bernard);
+        var tirerSansBalle = () => _useCase.Tirer(partieDeChasse.Id, Data.Bernard);
 
-            tirerSansBalle.Should()
-                .Throw<TasPlusDeBallesMonVieuxChasseALaMain>();
+        tirerSansBalle.Should()
+            .Throw<TasPlusDeBallesMonVieuxChasseALaMain>();
 
-            AssertLastEvent(partieDeChasse, "Bernard tire -> T'as plus de balles mon vieux, chasse à la main");
-        }
+        AssertLastEvent(partieDeChasse, "Bernard tire -> T'as plus de balles mon vieux, chasse à la main");
+    }
 
-        [Fact]
-        public void EchoueCarLeChasseurNestPasDansLaPartie()
-        {
-            var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
-                .AvecUnTerrainRicheEnGalinettes(3)
-                .Avec(Dédé, Bernard, Robert)
-            );
+    [Fact]
+    public void EchoueCarLeChasseurNestPasDansLaPartie()
+    {
+        var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
+            .AvecUnTerrainRicheEnGalinettes(3)
+            .Avec(Dédé, Bernard, Robert)
+        );
 
-            var chasseurInconnuVeutTirer = () => PartieDeChasseService.Tirer(partieDeChasse.Id, "Chasseur inconnu");
+        var chasseurInconnuVeutTirer = () => _useCase.Tirer(partieDeChasse.Id, "Chasseur inconnu");
 
-            chasseurInconnuVeutTirer.Should()
-                .Throw<ChasseurInconnu>();
-            Repository.SavedPartieDeChasse().Should().BeNull();
-        }
+        chasseurInconnuVeutTirer.Should()
+            .Throw<ChasseurInconnu>();
+        Repository.SavedPartieDeChasse().Should().BeNull();
+    }
 
-        [Theory]
-        [InlineData(Data.Bernard)]
-        [InlineData(Data.ChasseurInconnu)]
-        [InlineData("Michel")]
-        public void EchoueSiLesChasseursSontEnApero(string name)
-        {
-            var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
-                .AvecUnTerrainRicheEnGalinettes(3)
-                .Avec(Dédé, Bernard, Robert)
-                .AlorsQueLaPartieEst(PartieStatus.Apéro)
-            );
+    [Theory]
+    [InlineData(Data.Bernard)]
+    [InlineData(Data.ChasseurInconnu)]
+    [InlineData("Michel")]
+    public void EchoueSiLesChasseursSontEnApero(string name)
+    {
+        var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
+            .AvecUnTerrainRicheEnGalinettes(3)
+            .Avec(Dédé, Bernard, Robert)
+            .AlorsQueLaPartieEst(PartieStatus.Apéro)
+        );
 
-            var tirerEnPleinApéro = () => PartieDeChasseService.Tirer(partieDeChasse.Id, name);
+        var tirerEnPleinApéro = () => _useCase.Tirer(partieDeChasse.Id, name);
 
-            tirerEnPleinApéro.Should()
-                .Throw<OnTirePasPendantLapéroCestSacré>();
+        tirerEnPleinApéro.Should()
+            .Throw<OnTirePasPendantLapéroCestSacré>();
 
-            AssertLastEvent(partieDeChasse, $"{name} veut tirer -> On tire pas pendant l'apéro, c'est sacré !!!");
-        }
+        AssertLastEvent(partieDeChasse, $"{name} veut tirer -> On tire pas pendant l'apéro, c'est sacré !!!");
+    }
 
-        [Theory]
-        [InlineData(Data.Bernard)]
-        [InlineData(Data.ChasseurInconnu)]
-        [InlineData("Michel")]
-        public void EchoueSiLaPartieDeChasseEstTerminée(string name)
-        {
-            var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
-                .AvecUnTerrainRicheEnGalinettes(3)
-                .Avec(Dédé, Bernard, Robert)
-                .AlorsQueLaPartieEst(PartieStatus.Terminée)
-            );
+    [Theory]
+    [InlineData(Data.Bernard)]
+    [InlineData(Data.ChasseurInconnu)]
+    [InlineData("Michel")]
+    public void EchoueSiLaPartieDeChasseEstTerminée(string name)
+    {
+        var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
+            .AvecUnTerrainRicheEnGalinettes(3)
+            .Avec(Dédé, Bernard, Robert)
+            .AlorsQueLaPartieEst(PartieStatus.Terminée)
+        );
 
-            var tirerQuandTerminée = () => PartieDeChasseService.Tirer(partieDeChasse.Id, name);
+        var tirerQuandTerminée = () => _useCase.Tirer(partieDeChasse.Id, name);
 
-            tirerQuandTerminée.Should()
-                .Throw<OnTirePasQuandLaPartieEstTerminée>();
+        tirerQuandTerminée.Should()
+            .Throw<OnTirePasQuandLaPartieEstTerminée>();
 
-            AssertLastEvent(partieDeChasse, $"{name} veut tirer -> On tire pas quand la partie est terminée");
-        }
+        AssertLastEvent(partieDeChasse, $"{name} veut tirer -> On tire pas quand la partie est terminée");
     }
 }

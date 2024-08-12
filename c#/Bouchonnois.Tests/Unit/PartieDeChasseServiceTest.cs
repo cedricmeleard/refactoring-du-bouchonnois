@@ -1,5 +1,4 @@
 using Bouchonnois.Domain;
-using Bouchonnois.Service;
 using Bouchonnois.Tests.Builders;
 using Bouchonnois.Tests.Doubles;
 using FsCheck;
@@ -10,13 +9,11 @@ namespace Bouchonnois.Tests.Unit;
 public abstract class PartieDeChasseServiceTest
 {
     protected readonly static DateTime Now = new(2024, 6, 6, 14, 50, 45);
-    private readonly static Func<DateTime> TimeProvider = () => Now;
-    protected readonly PartieDeChasseService PartieDeChasseService;
+    protected readonly static Func<DateTime> TimeProvider = () => Now;
     protected readonly PartieDeChasseRepositoryForTests Repository;
     protected PartieDeChasseServiceTest()
     {
         Repository = new PartieDeChasseRepositoryForTests();
-        PartieDeChasseService = new PartieDeChasseService(Repository, TimeProvider);
     }
     protected ChasseurBuilder Dédé => Dédé();
     protected ChasseurBuilder Bernard => Bernard();

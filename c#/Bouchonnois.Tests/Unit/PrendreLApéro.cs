@@ -1,10 +1,17 @@
 using Bouchonnois.Domain;
-using Bouchonnois.Service.Exceptions;
+using Bouchonnois.UseCases;
+using Bouchonnois.UseCases.Exceptions;
 
 namespace Bouchonnois.Tests.Unit;
 
 public class PrendreLApéro : PartieDeChasseServiceTest
 {
+    private readonly PrendreLAperoUseCase _useCase;
+    public PrendreLApéro()
+    {
+        _useCase = new PrendreLAperoUseCase(Repository, TimeProvider);
+    }
+
     [Fact]
     public void QuandLaPartieEstEnCours()
     {
@@ -13,7 +20,7 @@ public class PrendreLApéro : PartieDeChasseServiceTest
                 .AvecUnTerrainRicheEnGalinettes(3)
                 .Avec(Dédé, Bernard, Robert)
         );
-        PartieDeChasseService.PrendreLapéro(partieDeChasse.Id);
+        _useCase.PrendreLapéro(partieDeChasse.Id);
 
         Repository
             .SavedPartieDeChasse()
@@ -22,49 +29,46 @@ public class PrendreLApéro : PartieDeChasseServiceTest
             .And.CestLePetitApero();
     }
 
-    public class Failure : PartieDeChasseServiceTest
+    [Fact]
+    public void EchoueCarPartieNexistePas()
     {
-        [Fact]
-        public void EchoueCarPartieNexistePas()
-        {
-            var id = Guid.NewGuid();
-            var apéroQuandPartieExistePas = () => PartieDeChasseService.PrendreLapéro(id);
+        var id = Guid.NewGuid();
+        var apéroQuandPartieExistePas = () => _useCase.PrendreLapéro(id);
 
-            apéroQuandPartieExistePas.Should()
-                .Throw<LaPartieDeChasseNexistePas>();
-            Repository.SavedPartieDeChasse().Should().BeNull();
-        }
+        apéroQuandPartieExistePas.Should()
+            .Throw<LaPartieDeChasseNexistePas>();
+        Repository.SavedPartieDeChasse().Should().BeNull();
+    }
 
-        [Fact]
-        public void EchoueSiLesChasseursSontDéjaEnApero()
-        {
-            var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
-                .AvecUnTerrainRicheEnGalinettes(3)
-                .Avec(Dédé, Bernard, Robert)
-                .AlorsQueLaPartieEst(PartieStatus.Apéro)
-            );
+    [Fact]
+    public void EchoueSiLesChasseursSontDéjaEnApero()
+    {
+        var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
+            .AvecUnTerrainRicheEnGalinettes(3)
+            .Avec(Dédé, Bernard, Robert)
+            .AlorsQueLaPartieEst(PartieStatus.Apéro)
+        );
 
-            var prendreLApéroQuandOnPrendDéjàLapéro = () => PartieDeChasseService.PrendreLapéro(partieDeChasse.Id);
+        var prendreLApéroQuandOnPrendDéjàLapéro = () => _useCase.PrendreLapéro(partieDeChasse.Id);
 
-            prendreLApéroQuandOnPrendDéjàLapéro.Should()
-                .Throw<OnEstDéjàEnTrainDePrendreLapéro>();
-            Repository.SavedPartieDeChasse().Should().BeNull();
-        }
+        prendreLApéroQuandOnPrendDéjàLapéro.Should()
+            .Throw<OnEstDéjàEnTrainDePrendreLapéro>();
+        Repository.SavedPartieDeChasse().Should().BeNull();
+    }
 
-        [Fact]
-        public void EchoueSiLaPartieDeChasseEstTerminée()
-        {
-            var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
-                .AvecUnTerrainRicheEnGalinettes(3)
-                .Avec(Dédé, Bernard, Robert)
-                .AlorsQueLaPartieEst(PartieStatus.Terminée)
-            );
+    [Fact]
+    public void EchoueSiLaPartieDeChasseEstTerminée()
+    {
+        var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
+            .AvecUnTerrainRicheEnGalinettes(3)
+            .Avec(Dédé, Bernard, Robert)
+            .AlorsQueLaPartieEst(PartieStatus.Terminée)
+        );
 
-            var prendreLapéroQuandTerminée = () => PartieDeChasseService.PrendreLapéro(partieDeChasse.Id);
+        var prendreLapéroQuandTerminée = () => _useCase.PrendreLapéro(partieDeChasse.Id);
 
-            prendreLapéroQuandTerminée.Should()
-                .Throw<OnPrendPasLapéroQuandLaPartieEstTerminée>();
-            Repository.SavedPartieDeChasse().Should().BeNull();
-        }
+        prendreLapéroQuandTerminée.Should()
+            .Throw<OnPrendPasLapéroQuandLaPartieEstTerminée>();
+        Repository.SavedPartieDeChasse().Should().BeNull();
     }
 }

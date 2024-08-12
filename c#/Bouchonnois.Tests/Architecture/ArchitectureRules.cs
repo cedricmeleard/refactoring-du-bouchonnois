@@ -8,8 +8,7 @@ public class ArchitectureRules
     [Fact]
     public void ApplicationServicesRules()
     {
-        // Les classes dans l'Application Services ne devraient pas dépendre de classes dans InfrastructureDomainModel()
-        ApplicationServices()
+        UseCases()
             .Should()
             .NotDependOnAny(Infrastructure())
             .Check();
@@ -25,22 +24,20 @@ public class ArchitectureRules
             .Check();
     }
 
-
     [Fact]
     public void DomainModelRules()
     {
-        // Les classes dans Domain ne devraient pas dépendre de classes dans Infrastructure ou Application Services
         DomainModel()
             .Should()
-            .NotDependOnAny(ApplicationServices()).AndShould()
+            .NotDependOnAny(UseCases()).AndShould()
             .NotDependOnAny(Infrastructure())
             .Check();
     }
 
-    private static GivenTypesConjunctionWithDescription ApplicationServices() =>
+    private static GivenTypesConjunctionWithDescription UseCases() =>
         ArchUnitExtensions.TypesInAssembly().And()
-            .ResideInNamespace("Service", true)
-            .As("Application Services");
+            .ResideInNamespace("UsesCase", true)
+            .As("Use Cases");
 
     private static GivenTypesConjunctionWithDescription DomainModel() =>
         ArchUnitExtensions.TypesInAssembly().And()

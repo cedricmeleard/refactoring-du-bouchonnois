@@ -1,10 +1,17 @@
 using Bouchonnois.Domain;
-using Bouchonnois.Service.Exceptions;
+using Bouchonnois.UseCases;
+using Bouchonnois.UseCases.Exceptions;
 
 namespace Bouchonnois.Tests.Unit;
 
 public class TirerSurUneGalinette : PartieDeChasseServiceTest
 {
+    private readonly TirerSurUneGalinetteUseCase _useCase;
+    public TirerSurUneGalinette()
+    {
+        _useCase = new TirerSurUneGalinetteUseCase(Repository, TimeProvider);
+    }
+
     [Fact]
     public void AvecUnChasseurAyantDesBallesEtAssezDeGalinettesSurLeTerrain()
     {
@@ -15,7 +22,7 @@ public class TirerSurUneGalinette : PartieDeChasseServiceTest
         );
 
         // Act
-        PartieDeChasseService.TirerSurUneGalinette(partieDeChasse.Id, Data.Bernard);
+        _useCase.TirerSurUneGalinette(partieDeChasse.Id, Data.Bernard);
 
         // Assert
         Repository
@@ -26,98 +33,95 @@ public class TirerSurUneGalinette : PartieDeChasseServiceTest
             .And.GalinettesSurLeTerrain(2);
     }
 
-    public class Failure : PartieDeChasseServiceTest
+    [Fact]
+    public void EchoueCarPartieNexistePas()
     {
-        [Fact]
-        public void EchoueCarPartieNexistePas()
-        {
-            var id = Guid.NewGuid();
-            var tirerQuandPartieExistePas = () => PartieDeChasseService.TirerSurUneGalinette(id, Data.Bernard);
+        var id = Guid.NewGuid();
+        var tirerQuandPartieExistePas = () => _useCase.TirerSurUneGalinette(id, Data.Bernard);
 
-            tirerQuandPartieExistePas.Should()
-                .Throw<LaPartieDeChasseNexistePas>();
-            Repository.SavedPartieDeChasse().Should().BeNull();
-        }
+        tirerQuandPartieExistePas.Should()
+            .Throw<LaPartieDeChasseNexistePas>();
+        Repository.SavedPartieDeChasse().Should().BeNull();
+    }
 
-        [Fact]
-        public void EchoueAvecUnChasseurNayantPlusDeBalles()
-        {
-            var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
-                .AvecUnTerrainRicheEnGalinettes(3)
-                .Avec(Dédé, Bernard.AvecDesBallesRestantes(0), Robert)
-            );
+    [Fact]
+    public void EchoueAvecUnChasseurNayantPlusDeBalles()
+    {
+        var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
+            .AvecUnTerrainRicheEnGalinettes(3)
+            .Avec(Dédé, Bernard.AvecDesBallesRestantes(0), Robert)
+        );
 
-            var tirerSansBalle = () => PartieDeChasseService.TirerSurUneGalinette(partieDeChasse.Id, Data.Bernard);
+        var tirerSansBalle = () => _useCase.TirerSurUneGalinette(partieDeChasse.Id, Data.Bernard);
 
-            tirerSansBalle.Should()
-                .Throw<TasPlusDeBallesMonVieuxChasseALaMain>();
+        tirerSansBalle.Should()
+            .Throw<TasPlusDeBallesMonVieuxChasseALaMain>();
 
-            AssertLastEvent(partieDeChasse, "Bernard veut tirer sur une galinette -> T'as plus de balles mon vieux, chasse à la main");
-        }
+        AssertLastEvent(partieDeChasse, "Bernard veut tirer sur une galinette -> T'as plus de balles mon vieux, chasse à la main");
+    }
 
-        [Fact]
-        public void EchoueCarPasDeGalinetteSurLeTerrain()
-        {
-            var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
-                .AvecUnTerrainRicheEnGalinettes(0)
-                .Avec(Dédé, Bernard, Robert)
-            );
+    [Fact]
+    public void EchoueCarPasDeGalinetteSurLeTerrain()
+    {
+        var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
+            .AvecUnTerrainRicheEnGalinettes(0)
+            .Avec(Dédé, Bernard, Robert)
+        );
 
-            var tirerAlorsQuePasDeGalinettes = () => PartieDeChasseService.TirerSurUneGalinette(partieDeChasse.Id, Data.Bernard);
+        var tirerAlorsQuePasDeGalinettes = () => _useCase.TirerSurUneGalinette(partieDeChasse.Id, Data.Bernard);
 
-            tirerAlorsQuePasDeGalinettes.Should()
-                .Throw<TasTropPicoléMonVieuxTasRienTouché>();
-            Repository.SavedPartieDeChasse().Should().BeNull();
-        }
+        tirerAlorsQuePasDeGalinettes.Should()
+            .Throw<TasTropPicoléMonVieuxTasRienTouché>();
+        Repository.SavedPartieDeChasse().Should().BeNull();
+    }
 
-        [Fact]
-        public void EchoueCarLeChasseurNestPasDansLaPartie()
-        {
-            var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
-                .AvecUnTerrainRicheEnGalinettes(3)
-                .Avec(Dédé, Bernard, Robert)
-            );
+    [Fact]
+    public void EchoueCarLeChasseurNestPasDansLaPartie()
+    {
+        var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
+            .AvecUnTerrainRicheEnGalinettes(3)
+            .Avec(Dédé, Bernard, Robert)
+        );
 
-            var chasseurInconnuVeutTirer = () => PartieDeChasseService.TirerSurUneGalinette(partieDeChasse.Id, "Michel");
+        var chasseurInconnuVeutTirer = () => _useCase.TirerSurUneGalinette(partieDeChasse.Id, "Michel");
 
-            chasseurInconnuVeutTirer.Should()
-                .Throw<ChasseurInconnu>()
-                .WithMessage("Chasseur inconnu Michel");
-            Repository.SavedPartieDeChasse().Should().BeNull();
-        }
+        chasseurInconnuVeutTirer.Should()
+            .Throw<ChasseurInconnu>()
+            .WithMessage("Chasseur inconnu Michel");
+        Repository.SavedPartieDeChasse().Should().BeNull();
+    }
 
-        [Fact]
-        public void EchoueSiLesChasseursSontEnApero()
-        {
-            var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
-                .AvecUnTerrainRicheEnGalinettes(3)
-                .Avec(Dédé, Bernard, Robert)
-                .AlorsQueLaPartieEst(PartieStatus.Apéro)
-            );
+    [Fact]
+    public void EchoueSiLesChasseursSontEnApero()
+    {
+        var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
+            .AvecUnTerrainRicheEnGalinettes(3)
+            .Avec(Dédé, Bernard, Robert)
+            .AlorsQueLaPartieEst(PartieStatus.Apéro)
+        );
 
-            var tirerEnPleinApéro = () => PartieDeChasseService.TirerSurUneGalinette(partieDeChasse.Id, Data.ChasseurInconnu);
+        var tirerEnPleinApéro = () => _useCase.TirerSurUneGalinette(partieDeChasse.Id, Data.ChasseurInconnu);
 
-            tirerEnPleinApéro.Should()
-                .Throw<OnTirePasPendantLapéroCestSacré>();
+        tirerEnPleinApéro.Should()
+            .Throw<OnTirePasPendantLapéroCestSacré>();
 
-            AssertLastEvent(partieDeChasse, "Chasseur inconnu veut tirer -> On tire pas pendant l'apéro, c'est sacré !!!");
-        }
+        AssertLastEvent(partieDeChasse, "Chasseur inconnu veut tirer -> On tire pas pendant l'apéro, c'est sacré !!!");
+    }
 
-        [Fact]
-        public void EchoueSiLaPartieDeChasseEstTerminée()
-        {
-            var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
-                .AvecUnTerrainRicheEnGalinettes(3)
-                .Avec(Dédé, Bernard, Robert)
-                .AlorsQueLaPartieEst(PartieStatus.Terminée)
-            );
+    [Fact]
+    public void EchoueSiLaPartieDeChasseEstTerminée()
+    {
+        var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
+            .AvecUnTerrainRicheEnGalinettes(3)
+            .Avec(Dédé, Bernard, Robert)
+            .AlorsQueLaPartieEst(PartieStatus.Terminée)
+        );
 
-            var tirerQuandTerminée = () => PartieDeChasseService.TirerSurUneGalinette(partieDeChasse.Id, Data.ChasseurInconnu);
+        var tirerQuandTerminée = () => _useCase.TirerSurUneGalinette(partieDeChasse.Id, Data.ChasseurInconnu);
 
-            tirerQuandTerminée.Should()
-                .Throw<OnTirePasQuandLaPartieEstTerminée>();
+        tirerQuandTerminée.Should()
+            .Throw<OnTirePasQuandLaPartieEstTerminée>();
 
-            AssertLastEvent(partieDeChasse, "Chasseur inconnu veut tirer -> On tire pas quand la partie est terminée");
-        }
+        AssertLastEvent(partieDeChasse, "Chasseur inconnu veut tirer -> On tire pas quand la partie est terminée");
     }
 }

@@ -1,10 +1,17 @@
 using Bouchonnois.Domain;
-using Bouchonnois.Service.Exceptions;
+using Bouchonnois.UseCases;
+using Bouchonnois.UseCases.Exceptions;
 
 namespace Bouchonnois.Tests.Unit;
 
 public class ReprendreLaPartieDeChasse : PartieDeChasseServiceTest
 {
+    private readonly ReprendreLaPartieUseCase _useCase;
+    public ReprendreLaPartieDeChasse()
+    {
+        _useCase = new ReprendreLaPartieUseCase(Repository, TimeProvider);
+    }
+
     [Fact]
     public void QuandLapéroEstEnCours()
     {
@@ -14,7 +21,7 @@ public class ReprendreLaPartieDeChasse : PartieDeChasseServiceTest
             .AlorsQueLaPartieEst(PartieStatus.Apéro)
         );
 
-        PartieDeChasseService.ReprendreLaPartie(partieDeChasse.Id);
+        _useCase.ReprendreLaPartie(partieDeChasse.Id);
 
         Repository
             .SavedPartieDeChasse()
@@ -27,51 +34,48 @@ public class ReprendreLaPartieDeChasse : PartieDeChasseServiceTest
             .And.ChasseurATiréSurUneGalinette(Data.Robert, 12, 0);
     }
 
-    public class Failure : PartieDeChasseServiceTest
+    [Fact]
+    public void EchoueCarPartieNexistePas()
     {
-        [Fact]
-        public void EchoueCarPartieNexistePas()
-        {
-            var id = Guid.NewGuid();
-            var reprendrePartieQuandPartieExistePas = () => PartieDeChasseService.ReprendreLaPartie(id);
+        var id = Guid.NewGuid();
+        var reprendrePartieQuandPartieExistePas = () => _useCase.ReprendreLaPartie(id);
 
-            reprendrePartieQuandPartieExistePas.Should()
-                .Throw<LaPartieDeChasseNexistePas>();
-            Repository.SavedPartieDeChasse().Should().BeNull();
-        }
+        reprendrePartieQuandPartieExistePas.Should()
+            .Throw<LaPartieDeChasseNexistePas>();
+        Repository.SavedPartieDeChasse().Should().BeNull();
+    }
 
-        [Fact]
-        public void EchoueSiLaChasseEstEnCours()
-        {
-            var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
+    [Fact]
+    public void EchoueSiLaChasseEstEnCours()
+    {
+        var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
+            .AvecUnTerrainRicheEnGalinettes(3)
+            .Avec(Dédé, Bernard, Robert)
+        );
+
+        var reprendreLaPartieQuandChasseEnCours = () => _useCase.ReprendreLaPartie(partieDeChasse.Id);
+
+        reprendreLaPartieQuandChasseEnCours.Should()
+            .Throw<LaChasseEstDéjàEnCours>();
+
+        Repository.SavedPartieDeChasse().Should().BeNull();
+    }
+
+    [Fact]
+    public void EchoueSiLaPartieDeChasseEstTerminée()
+    {
+        var partieDeChasse = AvecUnePartieDeChasseExistante(
+            NouvellePartieDeChasse
                 .AvecUnTerrainRicheEnGalinettes(3)
                 .Avec(Dédé, Bernard, Robert)
-            );
+                .AlorsQueLaPartieEst(PartieStatus.Terminée)
+        );
 
-            var reprendreLaPartieQuandChasseEnCours = () => PartieDeChasseService.ReprendreLaPartie(partieDeChasse.Id);
+        var prendreLapéroQuandTerminée = () => _useCase.ReprendreLaPartie(partieDeChasse.Id);
 
-            reprendreLaPartieQuandChasseEnCours.Should()
-                .Throw<LaChasseEstDéjàEnCours>();
+        prendreLapéroQuandTerminée.Should()
+            .Throw<QuandCestFiniCestFini>();
 
-            Repository.SavedPartieDeChasse().Should().BeNull();
-        }
-
-        [Fact]
-        public void EchoueSiLaPartieDeChasseEstTerminée()
-        {
-            var partieDeChasse = AvecUnePartieDeChasseExistante(
-                NouvellePartieDeChasse
-                    .AvecUnTerrainRicheEnGalinettes(3)
-                    .Avec(Dédé, Bernard, Robert)
-                    .AlorsQueLaPartieEst(PartieStatus.Terminée)
-            );
-
-            var prendreLapéroQuandTerminée = () => PartieDeChasseService.ReprendreLaPartie(partieDeChasse.Id);
-
-            prendreLapéroQuandTerminée.Should()
-                .Throw<QuandCestFiniCestFini>();
-
-            Repository.SavedPartieDeChasse().Should().BeNull();
-        }
+        Repository.SavedPartieDeChasse().Should().BeNull();
     }
 }
