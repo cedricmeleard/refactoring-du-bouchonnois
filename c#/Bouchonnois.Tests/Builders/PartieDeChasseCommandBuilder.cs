@@ -3,6 +3,7 @@ namespace Bouchonnois.Tests.Builders;
 public class PartieDeChasseCommandBuilder
 {
     private readonly List<(string, int)> _chasseurs = new();
+    public static PartieDeChasseCommandBuilder DémarrerUnePartieDeChasse => new();
 
     public PartieDeChasseCommandBuilder Avec(params (string, int)[] chasseurs)
     {

@@ -1,15 +1,12 @@
 using Bouchonnois.Domain;
-using Bouchonnois.UseCases;
 using Bouchonnois.UseCases.Exceptions;
 
 namespace Bouchonnois.Tests.Unit;
 
-public class ConsulterStatus : PartieDeChasseServiceTest
+public class ConsulterStatus : UseCaseTest<UseCases.ConsulterStatus>
 {
-    private readonly UseCases.ConsulterStatus _useCase;
-    public ConsulterStatus()
+    public ConsulterStatus() : base((r, t) => new UseCases.ConsulterStatus(r))
     {
-        _useCase = new UseCases.ConsulterStatus(Repository);
     }
 
     [Fact]
@@ -24,7 +21,7 @@ public class ConsulterStatus : PartieDeChasseServiceTest
                     "La partie de chasse commence à Pitibon sur Sauldre avec Dédé (20 balles), Bernard (8 balles), Robert (12 balles)")
         );
 
-        string status = _useCase.Handle(partieDeChasse.Id);
+        string status = UseCase.Handle(partieDeChasse.Id);
 
         status.Should()
             .Be(
@@ -38,7 +35,7 @@ public class ConsulterStatus : PartieDeChasseServiceTest
         var partieDeChasse = AvecUnePartieDeChasseExistante(
             NouvellePartieDeChasse
                 .AvecUnTerrainRicheEnGalinettes(3)
-                .Avec(Dédé(), Bernard(), Robert().AvecDesGalinettes(2))
+                .Avec(Dédé, Bernard, Robert.AvecDesGalinettes(2))
                 .AlorsQueLaPartieEst(PartieStatus.Terminée)
                 .WithEventLogs(
                     (new DateTime(2024, 4, 25, 9, 0, 12),
@@ -65,14 +62,14 @@ public class ConsulterStatus : PartieDeChasseServiceTest
                     (new DateTime(2024, 4, 25, 15, 30, 0), "La partie de chasse est terminée, vainqueur :  Robert - 3 galinettes"))
         );
 
-        return Verify(_useCase.Handle(partieDeChasse.Id));
+        return Verify(UseCase.Handle(partieDeChasse.Id));
     }
 
     [Fact]
     public void EchoueCarPartieNexistePas()
     {
         var id = Guid.NewGuid();
-        var reprendrePartieQuandPartieExistePas = () => _useCase.Handle(id);
+        var reprendrePartieQuandPartieExistePas = () => UseCase.Handle(id);
 
         reprendrePartieQuandPartieExistePas.Should()
             .Throw<LaPartieDeChasseNexistePas>();

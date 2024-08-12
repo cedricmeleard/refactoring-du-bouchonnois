@@ -4,13 +4,9 @@ using Bouchonnois.UseCases.Exceptions;
 
 namespace Bouchonnois.Tests.Unit;
 
-public class PrendreLApéro : PartieDeChasseServiceTest
+public class PrendreLApéro : UseCaseTest<PrendreLApero>
 {
-    private readonly PrendreLApero _useCase;
-    public PrendreLApéro()
-    {
-        _useCase = new PrendreLApero(Repository, TimeProvider);
-    }
+    public PrendreLApéro() : base((r, t) => new PrendreLApero(r, t)) {}
 
     [Fact]
     public void QuandLaPartieEstEnCours()
@@ -20,7 +16,7 @@ public class PrendreLApéro : PartieDeChasseServiceTest
                 .AvecUnTerrainRicheEnGalinettes(3)
                 .Avec(Dédé, Bernard, Robert)
         );
-        _useCase.Handle(partieDeChasse.Id);
+        UseCase.Handle(partieDeChasse.Id);
 
         Repository
             .SavedPartieDeChasse()
@@ -33,7 +29,7 @@ public class PrendreLApéro : PartieDeChasseServiceTest
     public void EchoueCarPartieNexistePas()
     {
         var id = Guid.NewGuid();
-        var apéroQuandPartieExistePas = () => _useCase.Handle(id);
+        var apéroQuandPartieExistePas = () => UseCase.Handle(id);
 
         apéroQuandPartieExistePas.Should()
             .Throw<LaPartieDeChasseNexistePas>();
@@ -49,7 +45,7 @@ public class PrendreLApéro : PartieDeChasseServiceTest
             .AlorsQueLaPartieEst(PartieStatus.Apéro)
         );
 
-        var prendreLApéroQuandOnPrendDéjàLapéro = () => _useCase.Handle(partieDeChasse.Id);
+        var prendreLApéroQuandOnPrendDéjàLapéro = () => UseCase.Handle(partieDeChasse.Id);
 
         prendreLApéroQuandOnPrendDéjàLapéro.Should()
             .Throw<OnEstDéjàEnTrainDePrendreLapéro>();
@@ -65,7 +61,7 @@ public class PrendreLApéro : PartieDeChasseServiceTest
             .AlorsQueLaPartieEst(PartieStatus.Terminée)
         );
 
-        var prendreLapéroQuandTerminée = () => _useCase.Handle(partieDeChasse.Id);
+        var prendreLapéroQuandTerminée = () => UseCase.Handle(partieDeChasse.Id);
 
         prendreLapéroQuandTerminée.Should()
             .Throw<OnPrendPasLapéroQuandLaPartieEstTerminée>();

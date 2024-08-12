@@ -7,7 +7,7 @@ public class PartieDeChasseBuilder
     private readonly List<ChasseurBuilder> _chasseurs;
     private readonly List<Event> _events;
     private readonly Guid _id;
-    
+
     private PartieStatus _status = PartieStatus.EnCours;
     private Terrain? _terrain;
     public PartieDeChasseBuilder()
@@ -16,6 +16,8 @@ public class PartieDeChasseBuilder
         _events = new List<Event>();
         _chasseurs = new List<ChasseurBuilder>();
     }
+
+    public static PartieDeChasseBuilder NouvellePartieDeChasse => new();
 
     public PartieDeChasseBuilder AvecUnTerrainRicheEnGalinettes(int nbGalinettes)
     {

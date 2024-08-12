@@ -4,12 +4,10 @@ using Bouchonnois.UseCases.Exceptions;
 
 namespace Bouchonnois.Tests.Unit;
 
-public class ReprendreLaPartieDeChasse : PartieDeChasseServiceTest
+public class ReprendreLaPartieDeChasse : UseCaseTest<ReprendreLaPartie>
 {
-    private readonly ReprendreLaPartie _useCase;
-    public ReprendreLaPartieDeChasse()
+    public ReprendreLaPartieDeChasse() : base((r, t) => new ReprendreLaPartie(r, t))
     {
-        _useCase = new ReprendreLaPartie(Repository, TimeProvider);
     }
 
     [Fact]
@@ -21,7 +19,7 @@ public class ReprendreLaPartieDeChasse : PartieDeChasseServiceTest
             .AlorsQueLaPartieEst(PartieStatus.Apéro)
         );
 
-        _useCase.Handle(partieDeChasse.Id);
+        UseCase.Handle(partieDeChasse.Id);
 
         Repository
             .SavedPartieDeChasse()
@@ -38,7 +36,7 @@ public class ReprendreLaPartieDeChasse : PartieDeChasseServiceTest
     public void EchoueCarPartieNexistePas()
     {
         var id = Guid.NewGuid();
-        var reprendrePartieQuandPartieExistePas = () => _useCase.Handle(id);
+        var reprendrePartieQuandPartieExistePas = () => UseCase.Handle(id);
 
         reprendrePartieQuandPartieExistePas.Should()
             .Throw<LaPartieDeChasseNexistePas>();
@@ -53,7 +51,7 @@ public class ReprendreLaPartieDeChasse : PartieDeChasseServiceTest
             .Avec(Dédé, Bernard, Robert)
         );
 
-        var reprendreLaPartieQuandChasseEnCours = () => _useCase.Handle(partieDeChasse.Id);
+        var reprendreLaPartieQuandChasseEnCours = () => UseCase.Handle(partieDeChasse.Id);
 
         reprendreLaPartieQuandChasseEnCours.Should()
             .Throw<LaChasseEstDéjàEnCours>();
@@ -71,7 +69,7 @@ public class ReprendreLaPartieDeChasse : PartieDeChasseServiceTest
                 .AlorsQueLaPartieEst(PartieStatus.Terminée)
         );
 
-        var prendreLapéroQuandTerminée = () => _useCase.Handle(partieDeChasse.Id);
+        var prendreLapéroQuandTerminée = () => UseCase.Handle(partieDeChasse.Id);
 
         prendreLapéroQuandTerminée.Should()
             .Throw<QuandCestFiniCestFini>();

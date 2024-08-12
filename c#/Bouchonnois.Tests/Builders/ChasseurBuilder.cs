@@ -14,6 +14,12 @@ public class ChasseurBuilder
         _nbBallesRestantes = nbBallesRestantes;
     }
 
+    public static ChasseurBuilder Dédé => new(Data.Dédé, 20);
+
+    public static ChasseurBuilder Bernard => new(Data.Bernard, 8);
+
+    public static ChasseurBuilder Robert => new(Data.Robert, 12);
+
     public ChasseurBuilder AvecDesBallesRestantes(int nbBallesRestantes)
     {
         _nbBallesRestantes = nbBallesRestantes;
@@ -29,20 +35,5 @@ public class ChasseurBuilder
     public Chasseur Build()
     {
         return new Chasseur(_name!) { BallesRestantes = _nbBallesRestantes, NbGalinettes = _nbGalinettes };
-    }
-
-    public static ChasseurBuilder Dédé()
-    {
-        return new ChasseurBuilder(Data.Dédé, 20);
-    }
-
-    public static ChasseurBuilder Bernard()
-    {
-        return new ChasseurBuilder(Data.Bernard, 8);
-    }
-
-    public static ChasseurBuilder Robert()
-    {
-        return new ChasseurBuilder(Data.Robert, 12);
     }
 }
