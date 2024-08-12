@@ -1,13 +1,22 @@
 ﻿using Bouchonnois.Service;
 
-namespace Bouchonnois.Domain
+namespace Bouchonnois.Domain;
+
+public class PartieDeChasse
 {
-    public class PartieDeChasse
+    public PartieDeChasse(Guid id, Terrain terrain)
     {
-        public Guid Id { get; set; }
-        public List<Chasseur> Chasseurs { get; set; }
-        public Terrain Terrain { get; set; }
-        public PartieStatus Status { get; set; }
-        public List<Event> Events { get; set; }
+        Id = id;
+        Terrain = terrain;
+
+        Status = PartieStatus.EnCours;
+
+        Chasseurs = new List<Chasseur>();
+        Events = new List<Event>();
     }
+    public Guid Id { get; init; }
+    public Terrain Terrain { get; }
+    public PartieStatus Status { get; set; }
+    public List<Chasseur> Chasseurs { get; init; }
+    public List<Event> Events { get; init; }
 }
