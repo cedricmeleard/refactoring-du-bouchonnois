@@ -48,7 +48,7 @@ public class DemarrerUnePartieDeChasse : PartieDeChasseServiceTest
                     EchoueAvec<ImpossibleDeDémarrerUnePartieSansChasseur>(
                         terrain,
                         PasDeChasseurs,
-                        savedPartieDeChasse => savedPartieDeChasse == null));
+                        savedPartieDeChasse => savedPartieDeChasse is null));
 
         [Property]
         public Property TerrainSansGalinette()
@@ -59,7 +59,7 @@ public class DemarrerUnePartieDeChasse : PartieDeChasseServiceTest
                     EchoueAvec<ImpossibleDeDémarrerUnePartieSansGalinettes>(
                         terrain,
                         chasseurs,
-                        savedPartieDeChasse => savedPartieDeChasse == null));
+                        savedPartieDeChasse => savedPartieDeChasse is null));
 
         [Property]
         public Property ChasseurSansBalle()
@@ -70,7 +70,7 @@ public class DemarrerUnePartieDeChasse : PartieDeChasseServiceTest
                     EchoueAvec<ImpossibleDeDémarrerUnePartieAvecUnChasseurSansBalle>(
                         terrain,
                         chasseurs,
-                        savedPartieDeChasse => savedPartieDeChasse == null));
+                        savedPartieDeChasse => savedPartieDeChasse is null));
 
         private bool EchoueAvec<TException>(
             (string nom, int nbGalinettes) terrain,
