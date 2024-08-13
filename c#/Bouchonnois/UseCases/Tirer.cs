@@ -3,26 +3,18 @@ using Bouchonnois.UseCases.Exceptions;
 
 namespace Bouchonnois.UseCases;
 
-public class Tirer
+public class Tirer(IPartieDeChasseRepository repository, Func<DateTime> timeProvider)
 {
-    private readonly IPartieDeChasseRepository _repository;
-    private readonly Func<DateTime> _timeProvider;
-    public Tirer(IPartieDeChasseRepository repository, Func<DateTime> timeProvider)
-    {
-        _repository = repository;
-        _timeProvider = timeProvider;
-    }
-
     public void Handle(Guid id, string chasseur)
     {
-        var partieDeChasse = _repository.GetById(id);
+        var partieDeChasse = repository.GetById(id);
 
         if (partieDeChasse == null) {
             throw new LaPartieDeChasseNexistePas();
         }
 
-        partieDeChasse.Tirer(chasseur, _timeProvider, _repository);
+        partieDeChasse.Tirer(chasseur, timeProvider, repository);
 
-        _repository.Save(partieDeChasse);
+        repository.Save(partieDeChasse);
     }
 }

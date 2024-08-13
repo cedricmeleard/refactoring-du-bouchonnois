@@ -3,15 +3,8 @@ using Bouchonnois.UseCases.Exceptions;
 
 namespace Bouchonnois.UseCases;
 
-public class DemarrerUnePartieDeChasse
+public class DemarrerUnePartieDeChasse(IPartieDeChasseRepository repository, Func<DateTime> timeProvider)
 {
-    private readonly IPartieDeChasseRepository _repository;
-    private readonly Func<DateTime> _timeProvider;
-    public DemarrerUnePartieDeChasse(IPartieDeChasseRepository repository, Func<DateTime> timeProvider)
-    {
-        _repository = repository;
-        _timeProvider = timeProvider;
-    }
     public Guid Handle((string nom, int nbGalinettes) terrainDeChasse, List<(string nom, int nbBalles)> chasseurs)
     {
         if (terrainDeChasse.nbGalinettes <= 0) {
@@ -39,11 +32,11 @@ public class DemarrerUnePartieDeChasse
             partieDeChasse.Chasseurs.Select(c => c.Nom + $" ({c.BallesRestantes} balles)")
         );
 
-        partieDeChasse.Events.Add(new Event(_timeProvider(),
+        partieDeChasse.Events.Add(new Event(timeProvider(),
             $"La partie de chasse commence à {partieDeChasse.Terrain.Nom} avec {chasseursToString}")
         );
 
-        _repository.Save(partieDeChasse);
+        repository.Save(partieDeChasse);
 
         return partieDeChasse.Id;
     }

@@ -3,24 +3,17 @@ using Bouchonnois.UseCases.Exceptions;
 
 namespace Bouchonnois.UseCases;
 
-public class PrendreLApero
+public class PrendreLApero(IPartieDeChasseRepository repository, Func<DateTime> timeProvider)
 {
-    private readonly IPartieDeChasseRepository _repository;
-    private readonly Func<DateTime> _timeProvider;
-    public PrendreLApero(IPartieDeChasseRepository repository, Func<DateTime> timeProvider)
-    {
-        _repository = repository;
-        _timeProvider = timeProvider;
-    }
     public void Handle(Guid id)
     {
-        var partieDeChasse = _repository.GetById(id);
+        var partieDeChasse = repository.GetById(id);
 
         if (partieDeChasse == null) {
             throw new LaPartieDeChasseNexistePas();
         }
 
-        partieDeChasse.StartApero(_timeProvider);
-        _repository.Save(partieDeChasse);
+        partieDeChasse.StartApero(timeProvider);
+        repository.Save(partieDeChasse);
     }
 }

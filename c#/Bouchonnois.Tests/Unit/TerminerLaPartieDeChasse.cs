@@ -1,6 +1,7 @@
 using Bouchonnois.Domain;
 using Bouchonnois.Domain.Exceptions;
 using Bouchonnois.UseCases;
+using Bouchonnois.UseCases.Exceptions;
 
 namespace Bouchonnois.Tests.Unit;
 
@@ -135,6 +136,17 @@ public class TerminerLaPartieDeChasse : UseCaseTest<TerminerLaPartie>
 
         prendreLapéroQuandTerminée.Should()
             .Throw<QuandCestFiniCestFini>();
+
+        Repository.SavedPartieDeChasse().Should().BeNull();
+    }
+
+    [Fact]
+    public void EchoueSiLaPartieDeChasseNExistePas()
+    {
+        var prendreLapéroQuandTerminée = () => UseCase.Handle(Guid.NewGuid());
+
+        prendreLapéroQuandTerminée.Should()
+            .Throw<LaPartieDeChasseNexistePas>();
 
         Repository.SavedPartieDeChasse().Should().BeNull();
     }
