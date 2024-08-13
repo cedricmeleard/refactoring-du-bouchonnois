@@ -20,14 +20,7 @@ public class PrendreLApero
             throw new LaPartieDeChasseNexistePas();
         }
 
-        if (partieDeChasse.Status == PartieStatus.Apéro) {
-            throw new OnEstDéjàEnTrainDePrendreLapéro();
-        }
-        if (partieDeChasse.Status == PartieStatus.Terminée) {
-            throw new OnPrendPasLapéroQuandLaPartieEstTerminée();
-        }
-        partieDeChasse.Status = PartieStatus.Apéro;
-        partieDeChasse.Events.Add(new Event(_timeProvider(), "Petit apéro"));
+        partieDeChasse.StartApero(_timeProvider);
         _repository.Save(partieDeChasse);
     }
 }

@@ -32,4 +32,15 @@ public class PartieDeChasse
         Status = PartieStatus.EnCours;
         Events.Add(new Event(timeProvider(), "Reprise de la chasse"));
     }
+    public void StartApero(Func<DateTime> timeProvider)
+    {
+        if (Status == PartieStatus.Apéro) {
+            throw new OnEstDéjàEnTrainDePrendreLapéro();
+        }
+        if (Status == PartieStatus.Terminée) {
+            throw new OnPrendPasLapéroQuandLaPartieEstTerminée();
+        }
+        Status = PartieStatus.Apéro;
+        Events.Add(new Event(timeProvider(), "Petit apéro"));
+    }
 }
