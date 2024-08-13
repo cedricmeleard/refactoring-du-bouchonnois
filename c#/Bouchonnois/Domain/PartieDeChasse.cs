@@ -107,4 +107,44 @@ public class PartieDeChasse
             throw new OnTirePasPendantLapéroCestSacré();
         }
     }
+    public void TirerSurUneGalinette(string chasseur, Func<DateTime> timeProvider, IPartieDeChasseRepository partieDeChasseRepository)
+    {
+        if (Terrain.NbGalinettes != 0) {
+            if (Status != PartieStatus.Apéro) {
+                if (Status != PartieStatus.Terminée) {
+                    if (Chasseurs.Exists(c => c.Nom == chasseur)) {
+                        var chasseurQuiTire = Chasseurs.First(c => c.Nom == chasseur);
+
+                        if (chasseurQuiTire.BallesRestantes == 0) {
+                            Events.Add(new Event(timeProvider(),
+                                $"{chasseur} veut tirer sur une galinette -> T'as plus de balles mon vieux, chasse à la main"));
+                            partieDeChasseRepository.Save(this);
+
+                            throw new TasPlusDeBallesMonVieuxChasseALaMain();
+                        }
+
+                        chasseurQuiTire.BallesRestantes--;
+                        chasseurQuiTire.NbGalinettes++;
+                        Terrain.NbGalinettes--;
+                        Events.Add(new Event(timeProvider(), $"{chasseur} tire sur une galinette"));
+                    } else {
+                        throw new ChasseurInconnu(chasseur);
+                    }
+                } else {
+                    Events.Add(new Event(timeProvider(),
+                        $"{chasseur} veut tirer -> On tire pas quand la partie est terminée"));
+                    partieDeChasseRepository.Save(this);
+
+                    throw new OnTirePasQuandLaPartieEstTerminée();
+                }
+            } else {
+                Events.Add(new Event(timeProvider(),
+                    $"{chasseur} veut tirer -> On tire pas pendant l'apéro, c'est sacré !!!"));
+                partieDeChasseRepository.Save(this);
+                throw new OnTirePasPendantLapéroCestSacré();
+            }
+        } else {
+            throw new TasTropPicoléMonVieuxTasRienTouché();
+        }
+    }
 }
