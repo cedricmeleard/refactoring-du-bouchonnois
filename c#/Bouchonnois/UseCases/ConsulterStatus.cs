@@ -18,11 +18,6 @@ public class ConsulterStatus
             throw new LaPartieDeChasseNexistePas();
         }
 
-        return string.Join(
-            Environment.NewLine,
-            partieDeChasse.Events
-                .OrderByDescending(@event => @event.Date)
-                .Select(@event => @event.ToString())
-        );
+        return partieDeChasse.Consulter();
     }
 }

@@ -147,4 +147,13 @@ public class PartieDeChasse
             throw new TasTropPicoléMonVieuxTasRienTouché();
         }
     }
+    public string Consulter()
+    {
+        return string.Join(
+            Environment.NewLine,
+            Events
+                .OrderByDescending(@event => @event.Date)
+                .Select(@event => @event.ToString())
+        );
+    }
 }
