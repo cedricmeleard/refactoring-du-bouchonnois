@@ -72,4 +72,39 @@ public class PartieDeChasse
         }
         return result;
     }
+    public void Tirer(string chasseur, Func<DateTime> timeProvider, IPartieDeChasseRepository partieDeChasseRepository)
+    {
+        if (Status != PartieStatus.Apéro) {
+            if (Status != PartieStatus.Terminée) {
+                if (Chasseurs.Exists(c => c.Nom == chasseur)) {
+                    var chasseurQuiTire = Chasseurs.First(c => c.Nom == chasseur);
+
+                    if (chasseurQuiTire.BallesRestantes == 0) {
+                        Events.Add(new Event(timeProvider(),
+                            $"{chasseur} tire -> T'as plus de balles mon vieux, chasse à la main"));
+                        partieDeChasseRepository.Save(this);
+
+                        throw new TasPlusDeBallesMonVieuxChasseALaMain();
+                    }
+
+                    Events.Add(new Event(timeProvider(), $"{chasseur} tire"));
+                    chasseurQuiTire.BallesRestantes--;
+                } else {
+                    throw new ChasseurInconnu(chasseur);
+                }
+            } else {
+                Events.Add(new Event(timeProvider(),
+                    $"{chasseur} veut tirer -> On tire pas quand la partie est terminée"));
+                partieDeChasseRepository.Save(this);
+
+                throw new OnTirePasQuandLaPartieEstTerminée();
+            }
+        } else {
+            Events.Add(new Event(timeProvider(),
+                $"{chasseur} veut tirer -> On tire pas pendant l'apéro, c'est sacré !!!"));
+            partieDeChasseRepository.Save(this);
+
+            throw new OnTirePasPendantLapéroCestSacré();
+        }
+    }
 }
