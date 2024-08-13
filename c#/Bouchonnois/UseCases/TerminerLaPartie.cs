@@ -16,32 +16,11 @@ public class TerminerLaPartie
     {
         var partieDeChasse = _repository.GetById(id);
 
-        var classement = partieDeChasse
-            .Chasseurs
-            .GroupBy(c => c.NbGalinettes)
-            .OrderByDescending(g => g.Key);
-
-        if (partieDeChasse.Status == PartieStatus.Terminée) {
-            throw new QuandCestFiniCestFini();
+        if (partieDeChasse == null) {
+            throw new LaPartieDeChasseNexistePas();
         }
 
-        partieDeChasse.Status = PartieStatus.Terminée;
-
-        string result;
-
-        if (classement.All(group => group.Key == 0)) {
-            result = "Brocouille";
-            partieDeChasse.Events.Add(
-                new Event(_timeProvider(), "La partie de chasse est terminée, vainqueur : Brocouille")
-            );
-        } else {
-            result = string.Join(", ", classement.First().Select(c => c.Nom));
-            partieDeChasse.Events.Add(
-                new Event(_timeProvider(),
-                    $"La partie de chasse est terminée, vainqueur : {string.Join(", ", classement.First().Select(c => $"{c.Nom} - {c.NbGalinettes} galinettes"))}"
-                )
-            );
-        }
+        string result = partieDeChasse.Terminer(_timeProvider);
 
         _repository.Save(partieDeChasse);
 

@@ -43,4 +43,33 @@ public class PartieDeChasse
         Status = PartieStatus.Apéro;
         Events.Add(new Event(timeProvider(), "Petit apéro"));
     }
+    public string Terminer(Func<DateTime> timeProvider)
+    {
+        var classement = Chasseurs
+            .GroupBy(c => c.NbGalinettes)
+            .OrderByDescending(g => g.Key);
+
+        if (Status == PartieStatus.Terminée) {
+            throw new QuandCestFiniCestFini();
+        }
+
+        Status = PartieStatus.Terminée;
+
+        string result;
+
+        if (classement.All(group => group.Key == 0)) {
+            result = "Brocouille";
+            Events.Add(
+                new Event(timeProvider(), "La partie de chasse est terminée, vainqueur : Brocouille")
+            );
+        } else {
+            result = string.Join(", ", classement.First().Select(c => c.Nom));
+            Events.Add(
+                new Event(timeProvider(),
+                    $"La partie de chasse est terminée, vainqueur : {string.Join(", ", classement.First().Select(c => $"{c.Nom} - {c.NbGalinettes} galinettes"))}"
+                )
+            );
+        }
+        return result;
+    }
 }
