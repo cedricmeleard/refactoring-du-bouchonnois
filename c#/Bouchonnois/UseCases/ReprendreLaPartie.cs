@@ -20,16 +20,8 @@ public class ReprendreLaPartie
             throw new LaPartieDeChasseNexistePas();
         }
 
-        if (partieDeChasse.Status == PartieStatus.EnCours) {
-            throw new LaChasseEstDéjàEnCours();
-        }
+        partieDeChasse.Reprendre(_timeProvider);
 
-        if (partieDeChasse.Status == PartieStatus.Terminée) {
-            throw new QuandCestFiniCestFini();
-        }
-
-        partieDeChasse.Status = PartieStatus.EnCours;
-        partieDeChasse.Events.Add(new Event(_timeProvider(), "Reprise de la chasse"));
         _repository.Save(partieDeChasse);
     }
 }
