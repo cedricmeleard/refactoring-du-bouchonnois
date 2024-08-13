@@ -36,7 +36,7 @@ public class ArchitectureRules
 
     private static GivenTypesConjunctionWithDescription UseCases() =>
         ArchUnitExtensions.TypesInAssembly().And()
-            .ResideInNamespace("UsesCase", true)
+            .ResideInNamespace("UseCases", true)
             .As("Use Cases");
 
     private static GivenTypesConjunctionWithDescription DomainModel() =>

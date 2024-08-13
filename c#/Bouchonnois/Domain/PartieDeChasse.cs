@@ -1,4 +1,4 @@
-﻿using Bouchonnois.UseCases.Exceptions;
+﻿using Bouchonnois.Domain.Exceptions;
 
 namespace Bouchonnois.Domain;
 
@@ -14,11 +14,24 @@ public class PartieDeChasse
         Chasseurs = new List<Chasseur>();
         Events = new List<Event>();
     }
-    public Guid Id { get; init; }
+    public Guid Id { get; }
     public Terrain Terrain { get; }
     public PartieStatus Status { get; set; }
     public List<Chasseur> Chasseurs { get; init; }
     public List<Event> Events { get; init; }
+
+    public void StartApero(Func<DateTime> timeProvider)
+    {
+        if (Status == PartieStatus.Apéro) {
+            throw new OnEstDéjàEnTrainDePrendreLapéro();
+        }
+        if (Status == PartieStatus.Terminée) {
+            throw new OnPrendPasLapéroQuandLaPartieEstTerminée();
+        }
+        Status = PartieStatus.Apéro;
+        Events.Add(new Event(timeProvider(), "Petit apéro"));
+    }
+
     public void Reprendre(Func<DateTime> timeProvider)
     {
         if (Status == PartieStatus.EnCours) {
@@ -32,17 +45,7 @@ public class PartieDeChasse
         Status = PartieStatus.EnCours;
         Events.Add(new Event(timeProvider(), "Reprise de la chasse"));
     }
-    public void StartApero(Func<DateTime> timeProvider)
-    {
-        if (Status == PartieStatus.Apéro) {
-            throw new OnEstDéjàEnTrainDePrendreLapéro();
-        }
-        if (Status == PartieStatus.Terminée) {
-            throw new OnPrendPasLapéroQuandLaPartieEstTerminée();
-        }
-        Status = PartieStatus.Apéro;
-        Events.Add(new Event(timeProvider(), "Petit apéro"));
-    }
+
     public string Terminer(Func<DateTime> timeProvider)
     {
         var classement = Chasseurs
