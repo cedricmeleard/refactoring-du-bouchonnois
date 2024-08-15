@@ -1,9 +1,17 @@
-namespace Bouchonnois.Domain
+namespace Bouchonnois.Domain;
+
+public class Chasseur(string nom, int nbBalles)
 {
-    public class Chasseur
+    public string Nom { get; } = nom;
+    public int BallesRestantes { get; private set; } = nbBalles;
+    public int NbGalinettes { get; private set; }
+    public bool AEncoreDesBalles() => BallesRestantes != 0;
+    public void ATiré()
     {
-        public string Nom { get; set; }
-        public int BallesRestantes { get; set; }
-        public int NbGalinettes { get; set; }
+        BallesRestantes--;
+    }
+    public void ATuéUneGalinette()
+    {
+        NbGalinettes++;
     }
 }
