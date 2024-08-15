@@ -1,5 +1,5 @@
 using Bouchonnois.Domain;
-using Bouchonnois.UseCases.Exceptions;
+using Bouchonnois.Domain.Exceptions;
 
 namespace Bouchonnois.UseCases;
 
@@ -11,30 +11,7 @@ public class DemarrerUnePartieDeChasse(IPartieDeChasseRepository repository, Fun
             throw new ImpossibleDeDémarrerUnePartieSansGalinettes();
         }
 
-        var partieDeChasse = new PartieDeChasse(
-            Guid.NewGuid(),
-            new Terrain(terrainDeChasse.nom) { NbGalinettes = terrainDeChasse.nbGalinettes });
-
-        foreach (var chasseur in chasseurs) {
-            if (chasseur.nbBalles == 0) {
-                throw new ImpossibleDeDémarrerUnePartieAvecUnChasseurSansBalle();
-            }
-
-            partieDeChasse.Chasseurs.Add(new Chasseur(chasseur.nom) { BallesRestantes = chasseur.nbBalles });
-        }
-
-        if (partieDeChasse.Chasseurs.Count == 0) {
-            throw new ImpossibleDeDémarrerUnePartieSansChasseur();
-        }
-
-        string chasseursToString = string.Join(
-            ", ",
-            partieDeChasse.Chasseurs.Select(c => c.Nom + $" ({c.BallesRestantes} balles)")
-        );
-
-        partieDeChasse.Events.Add(new Event(timeProvider(),
-            $"La partie de chasse commence à {partieDeChasse.Terrain.Nom} avec {chasseursToString}")
-        );
+        var partieDeChasse = PartieDeChasse.Create(timeProvider, terrainDeChasse, chasseurs);
 
         repository.Save(partieDeChasse);
 

@@ -48,7 +48,7 @@ public class Tirer : UseCaseTest<UseCases.Tirer>
     {
         var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
             .AvecUnTerrainRicheEnGalinettes(3)
-            .Avec(Dédé, Bernard.AvecDesBallesRestantes(0), Robert)
+            .Avec(Dédé, Bernard.SansBalle(), Robert)
         );
 
         var tirerSansBalle = () => UseCase.Handle(partieDeChasse.Id, Data.Bernard);

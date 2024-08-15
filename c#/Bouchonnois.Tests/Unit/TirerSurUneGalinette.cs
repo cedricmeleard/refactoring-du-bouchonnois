@@ -47,7 +47,7 @@ public class TirerSurUneGalinette : UseCaseTest<UseCases.TirerSurUneGalinette>
     {
         var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
             .AvecUnTerrainRicheEnGalinettes(3)
-            .Avec(Dédé, Bernard.AvecDesBallesRestantes(0), Robert)
+            .Avec(Dédé, Bernard.SansBalle(), Robert)
         );
 
         var tirerSansBalle = () => UseCase.Handle(partieDeChasse.Id, Data.Bernard);
@@ -55,15 +55,16 @@ public class TirerSurUneGalinette : UseCaseTest<UseCases.TirerSurUneGalinette>
         tirerSansBalle.Should()
             .Throw<TasPlusDeBallesMonVieuxChasseALaMain>();
 
-        AssertLastEvent(partieDeChasse, "Bernard veut tirer sur une galinette -> T'as plus de balles mon vieux, chasse à la main");
+        AssertLastEvent(partieDeChasse,
+            "Bernard veut tirer sur une galinette -> T'as plus de balles mon vieux, chasse à la main");
     }
 
     [Fact]
     public void EchoueCarPasDeGalinetteSurLeTerrain()
     {
         var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
-            .AvecUnTerrainRicheEnGalinettes(0)
-            .Avec(Dédé, Bernard, Robert)
+            .AvecUnTerrainRicheEnGalinettes(1)
+            .Avec(Dédé, Bernard, Robert.AyantTué(1))
         );
 
         var tirerAlorsQuePasDeGalinettes = () => UseCase.Handle(partieDeChasse.Id, Data.Bernard);

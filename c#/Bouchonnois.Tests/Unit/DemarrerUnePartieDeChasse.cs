@@ -1,5 +1,5 @@
 using Bouchonnois.Domain;
-using Bouchonnois.UseCases.Exceptions;
+using Bouchonnois.Domain.Exceptions;
 using FsCheck;
 using FsCheck.Xunit;
 using Microsoft.FSharp.Collections;
@@ -31,6 +31,20 @@ public class DemarrerUnePartieDeChasse : UseCaseTest<UseCases.DemarrerUnePartieD
             .DontScrubDateTimes();
     }
 
+    [Fact]
+    public void SansGalinettes()
+    {
+        var command = DémarrerUnePartieDeChasse
+            .Avec((Data.Dédé, 20), (Data.Bernard, 8), (Data.Robert, 12))
+            .SurUnTerrainRicheEnGalinettes(0);
+
+        var partieDeChasseCreation = () => PartieDeChasse.Create(TimeProvider, command.Terrain, command.Chasseurs);
+
+        partieDeChasseCreation
+            .Should()
+            .Throw<ImpossibleDeDémarrerUnePartieSansGalinettes>();
+    }
+
     [Property]
     public Property Sur1TerrainAvecGalinettesEtAuMoins1ChasseurAvecTousDesBalles()
         => Prop.ForAll(TerrainAvecGalinettesGenerator(),
@@ -49,7 +63,7 @@ public class DemarrerUnePartieDeChasse : UseCaseTest<UseCases.DemarrerUnePartieD
                 EchoueAvec<ImpossibleDeDémarrerUnePartieSansChasseur>(
                     terrain,
                     PasDeChasseurs,
-                    savedPartieDeChasse => savedPartieDeChasse is null));
+                    savedPartieDeChasse => savedPartieDeChasse == null));
 
     [Property]
     public Property TerrainSansGalinette()
@@ -59,7 +73,7 @@ public class DemarrerUnePartieDeChasse : UseCaseTest<UseCases.DemarrerUnePartieD
                 EchoueAvec<ImpossibleDeDémarrerUnePartieSansGalinettes>(
                     terrain,
                     chasseurs,
-                    savedPartieDeChasse => savedPartieDeChasse is null));
+                    savedPartieDeChasse => savedPartieDeChasse == null));
 
     [Property]
     public Property ChasseurSansBalle()
@@ -69,7 +83,7 @@ public class DemarrerUnePartieDeChasse : UseCaseTest<UseCases.DemarrerUnePartieD
                 EchoueAvec<ImpossibleDeDémarrerUnePartieAvecUnChasseurSansBalle>(
                     terrain,
                     chasseurs,
-                    savedPartieDeChasse => savedPartieDeChasse is null));
+                    savedPartieDeChasse => savedPartieDeChasse == null));
 
     private bool EchoueAvec<TException>(
         (string nom, int nbGalinettes) terrain,

@@ -16,7 +16,7 @@ public class TerminerLaPartieDeChasse : UseCaseTest<TerminerLaPartie>
     {
         var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
             .AvecUnTerrainRicheEnGalinettes(3)
-            .Avec(Dédé, Bernard, Robert.AvecDesGalinettes(2))
+            .Avec(Dédé, Bernard, Robert.AyantTué(2))
         );
 
         string meilleurChasseur = UseCase.Handle(partieDeChasse.Id);
@@ -28,7 +28,7 @@ public class TerminerLaPartieDeChasse : UseCaseTest<TerminerLaPartie>
             .And.LaPartieEstTerminée()
             .And.ChasseurATiréSurUneGalinette(Data.Dédé, 20, 0)
             .And.ChasseurATiréSurUneGalinette(Data.Bernard, 8, 0)
-            .And.ChasseurATiréSurUneGalinette(Data.Robert, 12, 2);
+            .And.ChasseurATiréSurUneGalinette(Data.Robert, 10, 2);
 
         meilleurChasseur.Should().Be(Data.Robert);
     }
@@ -38,7 +38,7 @@ public class TerminerLaPartieDeChasse : UseCaseTest<TerminerLaPartie>
     {
         var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
             .AvecUnTerrainRicheEnGalinettes(3)
-            .Avec(Robert.AvecDesGalinettes(2))
+            .Avec(Robert.AyantTué(2))
         );
 
         string meilleurChasseur = UseCase.Handle(partieDeChasse.Id);
@@ -48,7 +48,7 @@ public class TerminerLaPartieDeChasse : UseCaseTest<TerminerLaPartie>
             .Should()
             .HaveEmittedEvent(Now, "La partie de chasse est terminée, vainqueur : Robert - 2 galinettes")
             .And.LaPartieEstTerminée()
-            .And.ChasseurATiréSurUneGalinette(Data.Robert, 12, 2);
+            .And.ChasseurATiréSurUneGalinette(Data.Robert, 10, 2);
 
         meilleurChasseur.Should().Be(Data.Robert);
     }
@@ -57,21 +57,21 @@ public class TerminerLaPartieDeChasse : UseCaseTest<TerminerLaPartie>
     public void QuandLaPartieEstEnCoursEt2ChasseursExAequo()
     {
         var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
-            .AvecUnTerrainRicheEnGalinettes(3)
+            .AvecUnTerrainRicheEnGalinettes(4)
             // Attention, terrain avec 3 galinette mais 4 chassées, il manque une regle métier ?
-            .Avec(Dédé.AvecDesGalinettes(2), Bernard.AvecDesGalinettes(2), Robert)
+            .Avec(Dédé.AyantTué(2), Bernard.AyantTué(2), Robert)
         );
 
         string meilleurChasseur = UseCase.Handle(partieDeChasse.Id);
         meilleurChasseur.Should().Be($"{Data.Dédé}, {Data.Bernard}");
 
-        Repository
-            .SavedPartieDeChasse()
-            .Should()
+        var sut = Repository.SavedPartieDeChasse();
+
+        sut.Should()
             .HaveEmittedEvent(Now, "La partie de chasse est terminée, vainqueur : Dédé - 2 galinettes, Bernard - 2 galinettes")
             .And.LaPartieEstTerminée()
-            .And.ChasseurATiréSurUneGalinette(Data.Dédé, 20, 2)
-            .And.ChasseurATiréSurUneGalinette(Data.Bernard, 8, 2)
+            .And.ChasseurATiréSurUneGalinette(Data.Dédé, 18, 2)
+            .And.ChasseurATiréSurUneGalinette(Data.Bernard, 6, 2)
             .And.ChasseurATiréSurUneGalinette(Data.Robert, 12, 0);
     }
 
@@ -102,9 +102,9 @@ public class TerminerLaPartieDeChasse : UseCaseTest<TerminerLaPartie>
     {
         var partieDeChasse = AvecUnePartieDeChasseExistante(
             NouvellePartieDeChasse
-                .AvecUnTerrainRicheEnGalinettes(3)
+                .AvecUnTerrainRicheEnGalinettes(9)
                 // Attention, terrain avec 3 galinette mais 4 chassées, il manque une regle métier ?
-                .Avec(Dédé.AvecDesGalinettes(3), Bernard.AvecDesGalinettes(3), Robert.AvecDesGalinettes(3))
+                .Avec(Dédé.AyantTué(3), Bernard.AyantTué(3), Robert.AyantTué(3))
                 .AlorsQueLaPartieEst(PartieStatus.Apéro)
         );
 
@@ -115,9 +115,9 @@ public class TerminerLaPartieDeChasse : UseCaseTest<TerminerLaPartie>
             .Should()
             .HaveEmittedEvent(Now, "La partie de chasse est terminée, vainqueur : Dédé - 3 galinettes, Bernard - 3 galinettes, Robert - 3 galinettes")
             .And.LaPartieEstTerminée()
-            .And.ChasseurATiréSurUneGalinette(Data.Dédé, 20, 3)
-            .And.ChasseurATiréSurUneGalinette(Data.Bernard, 8, 3)
-            .And.ChasseurATiréSurUneGalinette(Data.Robert, 12, 3);
+            .And.ChasseurATiréSurUneGalinette(Data.Dédé, 17, 3)
+            .And.ChasseurATiréSurUneGalinette(Data.Bernard, 5, 3)
+            .And.ChasseurATiréSurUneGalinette(Data.Robert, 9, 3);
 
         meilleurChasseur.Should().Be($"{Data.Dédé}, {Data.Bernard}, {Data.Robert}");
     }
@@ -128,7 +128,7 @@ public class TerminerLaPartieDeChasse : UseCaseTest<TerminerLaPartie>
         var partieDeChasse = AvecUnePartieDeChasseExistante(NouvellePartieDeChasse
             .AvecUnTerrainRicheEnGalinettes(3)
             // Attention, terrain avec 3 galinette mais 4 chassées, il manque une regle métier ?
-            .Avec(Dédé, Bernard, Robert.AvecDesGalinettes(2))
+            .Avec(Dédé, Bernard, Robert.AyantTué(2))
             .AlorsQueLaPartieEst(PartieStatus.Terminée)
         );
 

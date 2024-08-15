@@ -6,8 +6,8 @@ namespace Bouchonnois.Tests.Unit;
 
 public abstract class UseCaseTestBase
 {
-    protected readonly static DateTime Now = new(2024, 6, 6, 14, 50, 45);
-    protected readonly static Func<DateTime> TimeProvider = () => Now;
+    protected static readonly DateTime Now = new(2024, 6, 6, 14, 50, 45);
+    protected static readonly Func<DateTime> TimeProvider = () => Now;
     protected static List<(string, int)> PasDeChasseurs => [];
 }
 
@@ -26,14 +26,12 @@ public class UseCaseTest<TUseCase> : UseCaseTestBase
     {
         partieDeChasse
             .Events.Should()
-            .HaveCount(1)
-            .And
             .EndWith(new Event(Now, expectedMessage));
     }
 
     protected PartieDeChasse AvecUnePartieDeChasseExistante(PartieDeChasseBuilder partieDeChasseBuilder)
     {
-        var partieDeChasse = partieDeChasseBuilder.Build();
+        var partieDeChasse = partieDeChasseBuilder.Build(TimeProvider, Repository);
         Repository.Add(partieDeChasse);
 
         return partieDeChasse;
@@ -42,11 +40,13 @@ public class UseCaseTest<TUseCase> : UseCaseTestBase
     protected bool MustFailWith<TException>(Action action, Func<PartieDeChasse?, bool>? assert = null)
         where TException : Exception
     {
-        try {
+        try
+        {
             action();
             return false;
         }
-        catch (TException) {
+        catch (TException)
+        {
             return assert?.Invoke(Repository.SavedPartieDeChasse()) ?? true;
         }
     }

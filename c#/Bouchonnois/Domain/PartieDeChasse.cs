@@ -1,47 +1,99 @@
-﻿using Bouchonnois.Domain.Exceptions;
+﻿using System.Collections.Immutable;
+using Bouchonnois.Domain.Exceptions;
+using static Bouchonnois.Domain.PartieStatus;
 
 namespace Bouchonnois.Domain;
 
 public class PartieDeChasse
 {
-    public PartieDeChasse(Guid id, Terrain terrain)
+    private readonly List<Chasseur> _chasseurs;
+    private readonly List<Event> _events;
+    private PartieDeChasse(
+        Guid id,
+        Terrain terrain,
+        List<(string nom, int nbBalles)> chasseurs,
+        Func<DateTime> timeProvider)
     {
         Id = id;
         Terrain = terrain;
-        Status = PartieStatus.EnCours;
-        Chasseurs = new List<Chasseur>();
-        Events = new List<Event>();
+        Status = EnCours;
+
+        _chasseurs = new List<Chasseur>();
+
+        foreach (var chasseur in chasseurs) {
+            _chasseurs.Add(new Chasseur(chasseur.nom)
+            {
+                BallesRestantes = chasseur.nbBalles
+            });
+        }
+
+        _events = new List<Event>();
+        
+        string chasseursToString = string.Join(", ",
+            _chasseurs.Select(c => c.Nom + $" ({c.BallesRestantes} balles)")
+        );
+        _events.Add(new Event(timeProvider(),
+            $"La partie de chasse commence à {terrain.Nom} avec {chasseursToString}")
+        );
     }
+
     public Guid Id { get; }
     public Terrain Terrain { get; }
-    public PartieStatus Status { get; set; }
-    public List<Chasseur> Chasseurs { get; init; }
-    public List<Event> Events { get; init; }
+    public PartieStatus Status { get; private set; }
+
+    public IReadOnlyList<Chasseur> Chasseurs => _chasseurs.ToImmutableList();
+    public IReadOnlyList<Event> Events => _events.ToImmutableList();
+
+    public static PartieDeChasse Create(
+        Func<DateTime> timeProvider,
+        (string nom, int nbGalinettes) terrainDeChasse,
+        List<(string nom, int nbBalles)> chasseurs)
+    {
+        if (terrainDeChasse.nbGalinettes <= 0) {
+            throw new ImpossibleDeDémarrerUnePartieSansGalinettes();
+        }
+        if (chasseurs.Count == 0) {
+            throw new ImpossibleDeDémarrerUnePartieSansChasseur();
+        }
+        if (chasseurs.Any(c => c.nbBalles == 0)) {
+            throw new ImpossibleDeDémarrerUnePartieAvecUnChasseurSansBalle();
+        }
+
+        return new PartieDeChasse(
+            Guid.NewGuid(),
+            new Terrain(terrainDeChasse.nom)
+            {
+                NbGalinettes = terrainDeChasse.nbGalinettes
+            },
+            chasseurs,
+            timeProvider
+        );
+    }
 
     public void StartApero(Func<DateTime> timeProvider)
     {
-        if (Status == PartieStatus.Apéro) {
+        if (Status == Apéro) {
             throw new OnEstDéjàEnTrainDePrendreLapéro();
         }
-        if (Status == PartieStatus.Terminée) {
+        if (Status == Terminée) {
             throw new OnPrendPasLapéroQuandLaPartieEstTerminée();
         }
-        Status = PartieStatus.Apéro;
-        Events.Add(new Event(timeProvider(), "Petit apéro"));
+        Status = Apéro;
+        _events.Add(new Event(timeProvider(), "Petit apéro"));
     }
 
     public void Reprendre(Func<DateTime> timeProvider)
     {
-        if (Status == PartieStatus.EnCours) {
+        if (Status == EnCours) {
             throw new LaChasseEstDéjàEnCours();
         }
 
-        if (Status == PartieStatus.Terminée) {
+        if (Status == Terminée) {
             throw new QuandCestFiniCestFini();
         }
 
-        Status = PartieStatus.EnCours;
-        Events.Add(new Event(timeProvider(), "Reprise de la chasse"));
+        Status = EnCours;
+        _events.Add(new Event(timeProvider(), "Reprise de la chasse"));
     }
 
     public string Terminer(Func<DateTime> timeProvider)
@@ -50,22 +102,22 @@ public class PartieDeChasse
             .GroupBy(c => c.NbGalinettes)
             .OrderByDescending(g => g.Key);
 
-        if (Status == PartieStatus.Terminée) {
+        if (Status == Terminée) {
             throw new QuandCestFiniCestFini();
         }
 
-        Status = PartieStatus.Terminée;
+        Status = Terminée;
 
         string result;
 
         if (classement.All(group => group.Key == 0)) {
             result = "Brocouille";
-            Events.Add(
+            _events.Add(
                 new Event(timeProvider(), "La partie de chasse est terminée, vainqueur : Brocouille")
             );
         } else {
             result = string.Join(", ", classement.First().Select(c => c.Nom));
-            Events.Add(
+            _events.Add(
                 new Event(timeProvider(),
                     $"La partie de chasse est terminée, vainqueur : {string.Join(", ", classement.First().Select(c => $"{c.Nom} - {c.NbGalinettes} galinettes"))}"
                 )
@@ -75,33 +127,33 @@ public class PartieDeChasse
     }
     public void Tirer(string chasseur, Func<DateTime> timeProvider, IPartieDeChasseRepository partieDeChasseRepository)
     {
-        if (Status != PartieStatus.Apéro) {
-            if (Status != PartieStatus.Terminée) {
-                if (Chasseurs.Exists(c => c.Nom == chasseur)) {
+        if (Status != Apéro) {
+            if (Status != Terminée) {
+                if (_chasseurs.Exists(c => c.Nom == chasseur)) {
                     var chasseurQuiTire = Chasseurs.First(c => c.Nom == chasseur);
 
                     if (chasseurQuiTire.BallesRestantes == 0) {
-                        Events.Add(new Event(timeProvider(),
+                        _events.Add(new Event(timeProvider(),
                             $"{chasseur} tire -> T'as plus de balles mon vieux, chasse à la main"));
                         partieDeChasseRepository.Save(this);
 
                         throw new TasPlusDeBallesMonVieuxChasseALaMain();
                     }
 
-                    Events.Add(new Event(timeProvider(), $"{chasseur} tire"));
+                    _events.Add(new Event(timeProvider(), $"{chasseur} tire"));
                     chasseurQuiTire.BallesRestantes--;
                 } else {
                     throw new ChasseurInconnu(chasseur);
                 }
             } else {
-                Events.Add(new Event(timeProvider(),
+                _events.Add(new Event(timeProvider(),
                     $"{chasseur} veut tirer -> On tire pas quand la partie est terminée"));
                 partieDeChasseRepository.Save(this);
 
                 throw new OnTirePasQuandLaPartieEstTerminée();
             }
         } else {
-            Events.Add(new Event(timeProvider(),
+            _events.Add(new Event(timeProvider(),
                 $"{chasseur} veut tirer -> On tire pas pendant l'apéro, c'est sacré !!!"));
             partieDeChasseRepository.Save(this);
 
@@ -111,13 +163,13 @@ public class PartieDeChasse
     public void TirerSurUneGalinette(string chasseur, Func<DateTime> timeProvider, IPartieDeChasseRepository partieDeChasseRepository)
     {
         if (Terrain.NbGalinettes != 0) {
-            if (Status != PartieStatus.Apéro) {
-                if (Status != PartieStatus.Terminée) {
-                    if (Chasseurs.Exists(c => c.Nom == chasseur)) {
+            if (Status != Apéro) {
+                if (Status != Terminée) {
+                    if (_chasseurs.Exists(c => c.Nom == chasseur)) {
                         var chasseurQuiTire = Chasseurs.First(c => c.Nom == chasseur);
 
                         if (chasseurQuiTire.BallesRestantes == 0) {
-                            Events.Add(new Event(timeProvider(),
+                            _events.Add(new Event(timeProvider(),
                                 $"{chasseur} veut tirer sur une galinette -> T'as plus de balles mon vieux, chasse à la main"));
                             partieDeChasseRepository.Save(this);
 
@@ -127,19 +179,19 @@ public class PartieDeChasse
                         chasseurQuiTire.BallesRestantes--;
                         chasseurQuiTire.NbGalinettes++;
                         Terrain.NbGalinettes--;
-                        Events.Add(new Event(timeProvider(), $"{chasseur} tire sur une galinette"));
+                        _events.Add(new Event(timeProvider(), $"{chasseur} tire sur une galinette"));
                     } else {
                         throw new ChasseurInconnu(chasseur);
                     }
                 } else {
-                    Events.Add(new Event(timeProvider(),
+                    _events.Add(new Event(timeProvider(),
                         $"{chasseur} veut tirer -> On tire pas quand la partie est terminée"));
                     partieDeChasseRepository.Save(this);
 
                     throw new OnTirePasQuandLaPartieEstTerminée();
                 }
             } else {
-                Events.Add(new Event(timeProvider(),
+                _events.Add(new Event(timeProvider(),
                     $"{chasseur} veut tirer -> On tire pas pendant l'apéro, c'est sacré !!!"));
                 partieDeChasseRepository.Save(this);
                 throw new OnTirePasPendantLapéroCestSacré();
@@ -152,7 +204,7 @@ public class PartieDeChasse
     {
         return string.Join(
             Environment.NewLine,
-            Events
+            _events
                 .OrderByDescending(@event => @event.Date)
                 .Select(@event => @event.ToString())
         );

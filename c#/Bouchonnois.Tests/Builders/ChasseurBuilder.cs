@@ -14,19 +14,22 @@ public class ChasseurBuilder
         _nbBallesRestantes = nbBallesRestantes;
     }
 
+    public bool SansBalles { get; private set; }
+
     public static ChasseurBuilder Dédé => new(Data.Dédé, 20);
 
     public static ChasseurBuilder Bernard => new(Data.Bernard, 8);
 
     public static ChasseurBuilder Robert => new(Data.Robert, 12);
 
-    public ChasseurBuilder AvecDesBallesRestantes(int nbBallesRestantes)
+    public ChasseurBuilder SansBalle()
     {
-        _nbBallesRestantes = nbBallesRestantes;
+        SansBalles = true;
+        _nbBallesRestantes = 1;
         return this;
     }
 
-    public ChasseurBuilder AvecDesGalinettes(int nbGalinettes)
+    public ChasseurBuilder AyantTué(int nbGalinettes)
     {
         _nbGalinettes = nbGalinettes;
         return this;
