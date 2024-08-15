@@ -6,13 +6,13 @@ public class ChasseurBuilder
 {
     private readonly string _name;
     private int _nbBallesRestantes;
-    private int _nbGalinettes;
 
     public ChasseurBuilder(string name, int nbBallesRestantes)
     {
         _name = name;
         _nbBallesRestantes = nbBallesRestantes;
     }
+    public int NbGalinettes { get; private set; }
 
     public bool SansBalles { get; private set; }
 
@@ -31,12 +31,9 @@ public class ChasseurBuilder
 
     public ChasseurBuilder AyantTué(int nbGalinettes)
     {
-        _nbGalinettes = nbGalinettes;
+        NbGalinettes = nbGalinettes;
         return this;
     }
 
-    public Chasseur Build()
-    {
-        return new Chasseur(_name!) { BallesRestantes = _nbBallesRestantes, NbGalinettes = _nbGalinettes };
-    }
+    public Chasseur Build() => new(_name!, _nbBallesRestantes);
 }

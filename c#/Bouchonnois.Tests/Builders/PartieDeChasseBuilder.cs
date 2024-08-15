@@ -20,7 +20,7 @@ public class PartieDeChasseBuilder
 
     public PartieDeChasseBuilder AvecUnTerrainRicheEnGalinettes(int nbGalinettes)
     {
-        _terrain = new Terrain(Data.TerrainName) { NbGalinettes = nbGalinettes };
+        _terrain = new Terrain(Data.TerrainName, nbGalinettes);
         return this;
     }
 
@@ -53,14 +53,19 @@ public class PartieDeChasseBuilder
     {
         var builtChasseurs = _chasseurs.Select(c => c.Build()).ToList();
         var chasseursSansBalles = _chasseurs.Where(c => c.SansBalles).Select(c => c.Build().Nom).ToList();
+        var chasseursAvecDesGalinettes = _chasseurs
+            .Where(c => c.NbGalinettes != 0)
+            .Select(c => (c.Build().Nom, c.NbGalinettes))
+            .ToList();
 
         var partieDeChasse = PartieDeChasse.Create(
             timeProvider,
             (_terrain!.Nom, _terrain.NbGalinettes),
             builtChasseurs.Select(c => (c.Nom, c.BallesRestantes)).ToList());
 
-        TirerSurLesGalinettes(timeProvider, repository, partieDeChasse, builtChasseurs);
+        TirerSurLesGalinettes(timeProvider, repository, partieDeChasse, chasseursAvecDesGalinettes);
         TirerDansLeVide(timeProvider, repository, chasseursSansBalles, partieDeChasse);
+
         ChangeStatus(partieDeChasse, timeProvider);
 
         return partieDeChasse;
@@ -87,18 +92,16 @@ public class PartieDeChasseBuilder
         Func<DateTime> timeProvider,
         IPartieDeChasseRepository repository,
         PartieDeChasse partieDeChasse,
-        List<Chasseur> builtChasseurs)
+        List<(string nom, int nbGalinettes)> builtChasseurs)
     {
-        partieDeChasse.Chasseurs
-            .ToList()
-            .ForEach(c =>
-            {
-                var built = builtChasseurs.First(x => x.Nom == c.Nom);
-                int repeat = built.NbGalinettes;
-                while (repeat > 0) {
-                    partieDeChasse.TirerSurUneGalinette(built.Nom, timeProvider, repository);
-                    repeat--;
-                }
-            });
+        builtChasseurs.ForEach(tuple =>
+        {
+            var chasseur = partieDeChasse.Chasseurs.First(c => c.Nom == tuple.nom);
+            int repeat = tuple.nbGalinettes;
+            while (repeat > 0) {
+                partieDeChasse.TirerSurUneGalinette(chasseur.Nom, timeProvider, repository);
+                repeat--;
+            }
+        });
     }
 }
